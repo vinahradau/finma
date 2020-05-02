@@ -1,5 +1,8 @@
 # finma
-financial regulations in Switzerland
+
+CIDFINMA
+
+Client identifying data regulations in Switzerland
 
 This project contains the formal specification of CID FINMA regulation. The specification is written using the Z notation and was developed by Serge (Siarhei Vinahradau, vinahradau@yahoo.de).
 
@@ -8,15 +11,16 @@ The CID FINMA regulation was published by the Swiss Financial Market Supervisory
 This Z specification can be animated using the jaza animator. Jaza is available for download as an executable on github, thanks to Mark Utting (S. References).
 
 Project Contents
-CIDFINMA_spec_Z.zed16 file with the Z schema definitions and operations. The file can be opened and edited with the CZT editor (S. References).
-CIDFINMA_spec_Z.zed with the contents of the *.zed16 file (above) converted into the latex notation. This *.zed file can be loaded into the jaza animator. Converted into latex by CZT and slightly modified manually to comply with jaza syntax expectations.
-Descriptions of the use cases, jaza command line arguments and outputs to test the CID FINMA specification:
+
+1. CIDFINMA_spec_Z.zed16 file with the Z schema definitions and operations. The file can be opened and edited with the CZT editor (S. References).
+2. CIDFINMA_spec_Z.zed with the contents of the *.zed16 file (above) converted into the latex notation. This *.zed file can be loaded into the jaza animator. Converted into latex by CZT and slightly modified manually to comply with jaza syntax expectations.
+3. Descriptions of the use cases, jaza command line arguments and outputs to test the CID FINMA specification:
 - CIDFINMA_spec_Z_jaza_case_1_1.txt;
 - CIDFINMA_spec_Z_jaza_case_1_2.txt;
 - CIDFINMA_spec_Z_jaza_case_2_1.txt;
 - CIDFINMA_spec_Z_jaza_case_2_2.txt;
-CIDFINMA_spec_Z.pdf with Z shemas and operations in a user friendly format.
-CIDFINMA_spec_Z_schema_description.pdf with schema comments.
+4. CIDFINMA_spec_Z.pdf with Z shemas and operations in a user friendly format.
+5. CIDFINMA_spec_Z_schema_description.pdf with schema comments.
 
 
 References
