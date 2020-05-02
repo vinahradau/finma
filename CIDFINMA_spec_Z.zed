@@ -1,0 +1,207 @@
+\begin{zsection}	 \SECTION Specification \parents~standard\_toolkit , zeves\_toolkit
+\end{zsection}
+
+\begin{zed}DATACATEGORY ::= DIRECT | INDIRECT | POTENTIALLYDIRECT | PROTECTED | NONCID
+\end{zed}
+
+\begin{zed}CIDCATEGORIES == \{ DIRECT , INDIRECT , POTENTIALLYDIRECT \}
+\end{zed}
+
+\begin{zed}COUNTRY ::= SWITZERLAND | UK | USA | GERMANY
+\end{zed}
+
+\begin{zed}METADATA ::= CUSTOMERNAME | CUSTOMERADDRESS | ISVIPCUSTOMER
+\end{zed}
+
+\begin{zed}CONTENT ::= MUSTERMANN | SEESTRASSE | YES | NO | XXXXX
+\end{zed}
+
+\begin{zed}ENTITY ::= ENTITY1 | ENTITY2 | ENTITY3
+\end{zed}
+
+\begin{zed}USER ::= USER1 | USER2 | USER3
+\end{zed}
+
+\begin{zed}ROLE ::= ROLEGUIUSER | ROLEBULKCID | ROLEBULK | ROLE1
+\end{zed}
+
+\begin{zed}NODEID ::= NODE1 | NODE2 | NODE3
+\end{zed}
+
+
+\begin{schema}{NODE}
+ nodeId : NODEID \\
+ nodeCountry : COUNTRY \\
+ nodeDataCategories : METADATA \pfun DATACATEGORY \\
+ nodeDataContents : METADATA \pfun CONTENT \\
+ nodeMetadata : \power METADATA \\
+ nodeContentsMetadata : \power METADATA 
+\where
+ nodeCountry = SWITZERLAND \lor ( \forall c : \ran nodeDataCategories @ c \notin CIDCATEGORIES ) \\
+ \dom nodeDataContents \subseteq \dom nodeDataCategories \\
+ nodeMetadata = \dom nodeDataCategories \\
+ nodeContentsMetadata = \dom nodeDataContents
+\end{schema}
+
+
+\begin{schema}{DOMAIN}
+ dataClassification : METADATA \pfun DATACATEGORY \\
+ dataOwner : METADATA \pfun ENTITY \\
+ roles : ROLE \rel METADATA \\
+ userAccessRigths : USER \rel ROLE \\
+ classificationMetadata : \power METADATA \\
+ dataOwnerMetadata : \power METADATA \\
+ rolesRoles : \power ROLE 
+\where
+ classificationMetadata = \dom dataClassification \\
+ dataOwnerMetadata = \dom dataOwner \\
+ rolesRoles = \dom roles \\
+ \dom dataClassification \subseteq \dom dataOwner \\
+ \# ( \dom dataClassification ) < 6 \\
+ \# ( \dom dataOwner ) < 6
+\end{schema}
+
+
+\begin{schema}{CIDSTORINGNODESAUDITLOG}
+ cidStoringNodesIds : \power NODEID 
+\where
+ \# ( cidStoringNodesIds ) < 6
+\end{schema}
+
+
+\begin{schema}{CIDBULKLOG}
+ cidBulkAccess : USER \rel NODEID 
+\where
+ \# ( cidBulkAccess ) < 6
+\end{schema}
+
+
+\begin{schema}{InitDomain}
+ DOMAIN~' \\
+ NODE~' \\
+ CIDSTORINGNODESAUDITLOG~' \\
+ CIDBULKLOG~' 
+\where
+ dataOwnerMetadata' =~\emptyset \\
+ classificationMetadata' =~\emptyset \\
+ userAccessRigths' =~\emptyset \\
+ nodeMetadata' =~\emptyset \\
+ cidStoringNodesIds' =~\emptyset \\
+ nodeId' = NODE1 \\
+ cidBulkAccess' =~\emptyset
+\end{schema}
+
+
+\begin{schema}{AddRole}
+ \Delta DOMAIN \\
+ role? : ROLE \\
+ metadata? : METADATA 
+\where
+ roles' = roles \cup \{ ( role? , metadata? ) \} \\
+ dataClassification' = dataClassification \\
+ dataOwner' = dataOwner \\
+ userAccessRigths' = userAccessRigths
+\end{schema}
+
+
+\begin{schema}{AddUserAccessRight}
+ \Delta DOMAIN \\
+ user? : USER \\
+ role? : ROLE 
+\where
+ userAccessRigths' = userAccessRigths \cup \{ ( user? , role? ) \} \\
+ roles' = roles \\
+ dataClassification' = dataClassification \\
+ dataOwner' = dataOwner
+\end{schema}
+
+
+\begin{schema}{RemoveUserAccessRight}
+ \Delta DOMAIN \\
+ user? : USER \\
+ role? : ROLE 
+\where
+ userAccessRigths' = userAccessRigths \setminus \{ ( user? , role? ) \} \\
+ roles' = roles \\
+ dataClassification' = dataClassification \\
+ dataOwner' = dataOwner
+\end{schema}
+
+
+\begin{schema}{AddNodeData}
+ \Delta NODE \\
+ \Delta CIDSTORINGNODESAUDITLOG \\
+ \Xi DOMAIN \\
+ nodeIdInput? : NODEID \\
+ nodeCountryInput? : COUNTRY \\
+ nodeMetadataInput? : METADATA \\
+ nodeDataContentInput? : CONTENT 
+\where
+ nodeCountry' = nodeCountryInput? \land nodeId' = nodeIdInput? \land ( ( nodeCountryInput? = SWITZERLAND \land ( dataClassification~nodeMetadataInput? ) \in CIDCATEGORIES \land cidStoringNodesIds' = cidStoringNodesIds \cup \{ nodeIdInput? \} \land nodeDataContents' = nodeDataContents \oplus \{ nodeMetadataInput? \mapsto nodeDataContentInput? \} \land nodeDataCategories' = nodeDataCategories \oplus \{ nodeMetadataInput? \mapsto ( dataClassification~nodeMetadataInput? ) \} ) \lor ( ( dataClassification~nodeMetadataInput? ) \notin CIDCATEGORIES \land cidStoringNodesIds' = cidStoringNodesIds \land nodeDataContents' = nodeDataContents \oplus \{ nodeMetadataInput? \mapsto nodeDataContentInput? \} \land nodeDataCategories' = nodeDataCategories \oplus \{ nodeMetadataInput? \mapsto ( dataClassification~nodeMetadataInput? ) \} ) \lor ( nodeCountryInput? \neq SWITZERLAND \land ( dataClassification~nodeMetadataInput? ) \in CIDCATEGORIES \land cidStoringNodesIds' = cidStoringNodesIds \land nodeDataContents' = nodeDataContents \oplus \{ nodeMetadataInput? \mapsto XXXXX \} \land nodeDataCategories' = nodeDataCategories \oplus \{ nodeMetadataInput? \mapsto PROTECTED \} ) )
+\end{schema}
+
+
+\begin{schema}{AccessNode}
+ \Xi NODE \\
+ \Xi DOMAIN \\
+ user? : USER \\
+ nodeId? : NODEID \\
+ userCountry? : COUNTRY \\
+ accessNodeMetadata? : METADATA \\
+ contentOutput! : \power CONTENT 
+\where
+ accessNodeMetadata? \in roles \limg ( userAccessRigths \limg \{ user? \} \rimg ) \rimg \land ( ( nodeDataCategories \limg \{ accessNodeMetadata? \} \rimg \subseteq CIDCATEGORIES \land userCountry? \neq SWITZERLAND \land contentOutput! = \{ XXXXX \} ) \lor ( ( nodeDataCategories \limg \{ accessNodeMetadata? \} \rimg \cap CIDCATEGORIES =~\emptyset \lor userCountry? = SWITZERLAND ) \land contentOutput! = nodeDataContents \limg \{ accessNodeMetadata? \} \rimg ) )
+\end{schema}
+
+
+\begin{schema}{AccessBulk}
+ \Xi DOMAIN \\
+ \Xi NODE \\
+ \Delta CIDBULKLOG \\
+ user? : USER \\
+ nodeId? : NODEID \\
+ userCountry? : COUNTRY \\
+ contentOutput! : \power CONTENT 
+\where
+ ( ROLEBULK \in userAccessRigths \limg \{ user? \} \rimg \land userCountry? \neq SWITZERLAND \land nodeCountry \neq SWITZERLAND \land cidBulkAccess' = cidBulkAccess \land contentOutput! = \ran nodeDataContents ) \lor ( ROLEBULKCID \in userAccessRigths \limg \{ user? \} \rimg \land userCountry? = SWITZERLAND \land cidBulkAccess' = cidBulkAccess \cap \{ ( user? , nodeId? ) \} \land contentOutput! = \ran nodeDataContents ) \lor ( ROLEBULK \in userAccessRigths \limg \{ user? \} \rimg \land cidBulkAccess' = cidBulkAccess \land \ran nodeDataCategories \cap CIDCATEGORIES =~\emptyset \land contentOutput! = \ran nodeDataContents )
+\end{schema}
+
+
+\begin{schema}{AssignDataOwner}
+ \Delta DOMAIN \\
+ metadata? : METADATA \\
+ dataOwnerInput? : ENTITY 
+\where
+ dataOwner' = dataOwner \oplus \{ metadata? \mapsto dataOwnerInput? \} \\
+ roles' = roles \\
+ userAccessRigths' = userAccessRigths
+\end{schema}
+
+
+\begin{schema}{ClassifyDataCategory}
+ \Delta DOMAIN \\
+ metadata? : METADATA \\
+ dataCategory? : DATACATEGORY 
+\where
+ dataClassification' = dataClassification \oplus \{ metadata? \mapsto dataCategory? \} \\
+ roles' = roles \\
+ userAccessRigths' = userAccessRigths
+\end{schema}
+
+
+\begin{zed}ImplementDataClassification \defs AssignDataOwner \land ClassifyDataCategory
+\end{zed}
+
+
+\begin{schema}{RecycleData}
+ \Delta DOMAIN \\
+ metadata? : METADATA 
+\where
+ metadata? \in dataOwnerMetadata \\
+ metadata? \in classificationMetadata \\
+ dataClassification' = \{ metadata? \} \ndres dataClassification \\
+ dataOwner' = \{ metadata? \} \ndres dataOwner \\
+ roles' = roles \\
+ userAccessRigths' = userAccessRigths
+\end{schema}
+
