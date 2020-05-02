@@ -1,0 +1,224 @@
+CID FINMA Specification in Z
+Developed by Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
+
+Case 2.2
+Classification, storage and bulk access of non-CID data.
+- customer name classified as DIRECT CID data (ImplementDataClassification operation);
+- vip customer flag classified as non-CID data (ImplementDataClassification operation);
+- anonymized CID data and non-CID data stored on a node outside Switzerland (AddNodeData operation);
+- USER1 is given access rights for CID bulk access (AddUserAccessRights operation);
+- USER2 is given access rights for non-CID bulk access (AddUserAccessRights operation);
+- USER1 in Switzerland successfully accesses bulk data, no CID bulk log record created (S. contentOutput! variable in AccessBulk operation);
+- USER1 from outside Switzerland successfully accesses bulk data, no CID bulk log record created (S. contentOutput! variable in AccessBulk operation);
+- USER2 in Switzerland successfully accesses bulk data, no CID bulk log record created (S. contentOutput! variable in AccessBulk operation);
+- USER2 from outside Switzerland successfully accesses bulk data, no CID bulk log record created (S. contentOutput! variable in AccessBulk operation);
+- USER3 without bulk access rights: no access (no solution provided by jaza in AccessBulk operation).
+
+JAZA> load CIDFINMA_spec_Z.zed
+Loading 'CIDFINMA_spec_Z.zed' ...
+Added 24 definitions.
+JAZA> do InitDomain
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{\}, dataClassification'==\{\},
+       dataOwner'==\{\}, dataOwnerMetadata'==\{\},
+       nodeContentsMetadata'==\{\}, nodeCountry'==GERMANY,
+       nodeDataCategories'==\{\}, nodeDataContents'==\{\}, nodeId'==NODE1,
+       nodeMetadata'==\{\}, roles'==\{\}, rolesRoles'==\{\},
+       userAccessRigths'==\{\} \rblot
+JAZA> ; ImplementDataClassification
+    Input metadata? = CUSTOMERNAME
+    Input dataOwnerInput? = ENTITY1
+    Input dataCategory? = DIRECT
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME\}, nodeContentsMetadata'==\{\},
+       nodeCountry'==GERMANY, nodeDataCategories'==\{\},
+       nodeDataContents'==\{\}, nodeId'==NODE1, nodeMetadata'==\{\},
+       roles'==\{\}, rolesRoles'==\{\}, userAccessRigths'==\{\} \rblot
+JAZA> ; ImplementDataClassification
+    Input metadata? = ISVIPCUSTOMER
+    Input dataOwnerInput? = ENTITY1
+    Input dataCategory? = NONCID
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeContentsMetadata'==\{\}, nodeCountry'==GERMANY,
+       nodeDataCategories'==\{\}, nodeDataContents'==\{\}, nodeId'==NODE1,
+       nodeMetadata'==\{\}, roles'==\{\}, rolesRoles'==\{\},
+       userAccessRigths'==\{\} \rblot
+JAZA>
+JAZA>
+JAZA> ; AddNodeData
+    Input nodeIdInput? = NODE1
+    Input nodeCountryInput? = USA
+    Input nodeMetadataInput? = CUSTOMERNAME
+    Input nodeDataContentInput? = MUSTERMANN
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeContentsMetadata'==\{CUSTOMERNAME\}, nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX)\}, nodeId'==NODE1,
+       nodeMetadata'==\{CUSTOMERNAME\}, roles'==\{\}, rolesRoles'==\{\},
+       userAccessRigths'==\{\} \rblot
+JAZA>
+JAZA>
+JAZA> ; AddNodeData
+    Input nodeIdInput? = NODE1
+    Input nodeCountryInput? = USA
+    Input nodeMetadataInput? = ISVIPCUSTOMER
+    Input nodeDataContentInput? = YES
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{\}, rolesRoles'==\{\}, userAccessRigths'==\{\} \rblot
+JAZA>
+JAZA>
+JAZA> ; AddUserAccessRights
+    Input user? = USER1
+    Input role? = ROLEBULKCID
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{\}, rolesRoles'==\{\},
+       userAccessRigths'==\{(USER1, ROLEBULKCID)\} \rblot
+JAZA> ; AddUserAccessRights
+    Input user? = USER2
+    Input role? = ROLEBULK
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{\}, rolesRoles'==\{\},
+       userAccessRigths'==\{(USER1, ROLEBULKCID),
+                            (USER2, ROLEBULK)\} \rblot
+JAZA>
+JAZA>
+JAZA> ; AccessBulk
+    Input user? = USER1
+    Input nodeId? = NODE1
+    Input userCountry? = SWITZERLAND
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       contentOutput!==\{XXXXX, YES\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{\}, rolesRoles'==\{\},
+       userAccessRigths'==\{(USER1, ROLEBULKCID),
+                            (USER2, ROLEBULK)\} \rblot
+JAZA> ; AccessBulk
+    Input user? = USER1
+    Input nodeId? = NODE1
+    Input userCountry? = USA
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       contentOutput!==\{XXXXX, YES\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{\}, rolesRoles'==\{\},
+       userAccessRigths'==\{(USER1, ROLEBULKCID),
+                            (USER2, ROLEBULK)\} \rblot
+JAZA>
+JAZA>
+JAZA>
+JAZA> ; AccessBulk
+    Input user? = USER2
+    Input nodeId? = NODE1
+    Input userCountry? = SWITZERLAND
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       contentOutput!==\{XXXXX, YES\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{\}, rolesRoles'==\{\},
+       userAccessRigths'==\{(USER1, ROLEBULKCID),
+                            (USER2, ROLEBULK)\} \rblot
+JAZA>
+JAZA>
+JAZA>
+JAZA> ; AccessBulk
+    Input user? = USER2
+    Input nodeId? = NODE1
+    Input userCountry? = USA
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       contentOutput!==\{XXXXX, YES\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{\}, rolesRoles'==\{\},
+       userAccessRigths'==\{(USER1, ROLEBULKCID),
+                            (USER2, ROLEBULK)\} \rblot
+JAZA>
+JAZA>
+JAZA> ; AccessBulk
+    Input user? = USER3
+    Input nodeId? = NODE1
+    Input userCountry? = USA
+No solutions
+JAZA>
