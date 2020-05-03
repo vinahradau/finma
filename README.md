@@ -1,6 +1,6 @@
 # CIDFINMA
 
-# Formalization of client identifying data regulation for banks in Switzerland
+# Formalization of client identifying data regulation requirements for banks in Switzerland
 
 This project contains the formal specification of CID FINMA regulation. The specification is written using the Z notation and was developed by Serge (Siarhei Vinahradau, vinahradau@yahoo.de).
 
