@@ -1,0 +1,222 @@
+Spezifikation für FINMA-Rundschreiben (CID) in Z
+Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
+\begin{zsection}	 \SECTION Specification \parents~standard\_toolkit , zeves\_toolkit
+\end{zsection}
+
+\begin{zed}DATENKATEGORIE ::= DIREKT | INDIREKT | POTENZIELLINDIREKT | GESCHUETZT | NICHTCID
+\end{zed}
+
+\begin{zed}CIDDATENKATEGORIEN == \{ DIREKT , INDIREKT , POTENZIELLINDIREKT \}
+\end{zed}
+
+\begin{zed}LAND ::= SCHWEIZ | GROSSBRITANNIEN | USA | DEUTSCHLAND
+\end{zed}
+
+\begin{zed}METADATEN ::= KUNDENNAME | KUNDENADRESSE | PROMINENZSTATUS
+\end{zed}
+
+\begin{zed}INHALT ::= MUSTERMANN | SEESTRASSE | JA | NEIN | XXXXX
+\end{zed}
+
+\begin{zed}EINHEIT ::= EINHEIT1 | EINHEIT2 | EINHEIT3
+\end{zed}
+
+\begin{zed}BENUTZER ::= BENUTZER1 | BENUTZER2 | BENUTZER3
+\end{zed}
+
+\begin{zed}ROLLE ::= ROLLEGUIBENUTZER | ROLLEMASSENZUGRIFFCID | ROLLEMASSENZUGRIFFNICHTCID | ROLLE1
+\end{zed}
+
+\begin{zed}SYSTEMID ::= SYSTEM1 | SYSTEM2 | SYSTEM3
+\end{zed}
+
+
+
+\begin{schema}{SYSTEM}
+ SystemId : SYSTEMID \\
+ SystemLand : LAND \\
+ SystemDatenklassifizierung : METADATEN \pfun DATENKATEGORIE \\
+ SystemDateninhalte : METADATEN \pfun INHALT \\
+ SystemMetadaten : \power METADATEN \\
+ SystemInhalteMetadaten : \power METADATEN 
+\where
+ SystemLand = SCHWEIZ \lor ( \forall c : \ran SystemDatenklassifizierung @ c \notin CIDDATENKATEGORIEN ) \\
+ \dom SystemDateninhalte \subseteq \dom SystemDatenklassifizierung \\
+ SystemMetadaten = \dom SystemDatenklassifizierung \\
+ SystemInhalteMetadaten = \dom SystemDateninhalte
+\end{schema}
+
+
+
+\begin{schema}{CIDSYSTEMEINVENTAR}
+ SYSTEM \\
+ CIDSpeichersystemeIds : \power SYSTEMID 
+\where
+ \forall Datenkategorie : \ran SystemDatenklassifizierung @ Datenkategorie \in CIDDATENKATEGORIEN \implies SystemId \in CIDSpeichersystemeIds
+\end{schema}
+
+
+
+\begin{schema}{BANK}
+ Datenklassifizierung : METADATEN \pfun DATENKATEGORIE \\
+ VerantwortlicheEinheiten : METADATEN \pfun EINHEIT \\
+ Rollen : ROLLE \rel METADATEN \\
+ BenutzerZugriffsrechte : BENUTZER \rel ROLLE \\
+ KlassifizierungMetadaten : \power METADATEN \\
+ VerantwortlicheMetadaten : \power METADATEN \\
+ RollenRollen : \power ROLLE 
+\where
+ KlassifizierungMetadaten = \dom Datenklassifizierung \\
+ VerantwortlicheMetadaten = \dom VerantwortlicheEinheiten \\
+ RollenRollen = \dom Rollen \\
+ \dom Datenklassifizierung \subseteq \dom VerantwortlicheEinheiten
+\end{schema}
+
+
+
+\begin{schema}{CIDMASSENZUGRIFFSLOG}
+ CIDMassenzugriffslog : BENUTZER \rel SYSTEMID
+\end{schema}
+
+
+
+\begin{schema}{BankInitiieren}
+ BANK~' \\
+ SYSTEM~' \\
+ CIDSYSTEMEINVENTAR~' \\
+ CIDMASSENZUGRIFFSLOG~' 
+\where
+ VerantwortlicheMetadaten' =~\emptyset \\
+ KlassifizierungMetadaten' =~\emptyset \\
+ BenutzerZugriffsrechte' =~\emptyset \\
+ SystemMetadaten' =~\emptyset \\
+ CIDSpeichersystemeIds' =~\emptyset \\
+ SystemId' = SYSTEM1 \\
+ CIDMassenzugriffslog' =~\emptyset
+\end{schema}
+
+
+
+\begin{schema}{DatenverantwortungZuordnen}
+ \Delta BANK \\
+ MetadatenEingabe? : METADATEN \\
+ EinheitEingabe? : EINHEIT 
+\where
+ VerantwortlicheEinheiten' = VerantwortlicheEinheiten \oplus \{ MetadatenEingabe? \mapsto EinheitEingabe? \} \\
+ Rollen' = Rollen \\
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte
+\end{schema}
+
+
+
+\begin{schema}{DatenKlassifizieren}
+ \Delta BANK \\
+ MetadatenEingabe? : METADATEN \\
+ DatenkategorieEingabe? : DATENKATEGORIE 
+\where
+ Datenklassifizierung' = Datenklassifizierung \oplus \{ MetadatenEingabe? \mapsto DatenkategorieEingabe? \} \\
+ Rollen' = Rollen \\
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte
+\end{schema}
+
+
+
+\begin{zed}DatenklassifizierungImplementieren \defs DatenverantwortungZuordnen \land DatenKlassifizieren
+\end{zed}
+
+
+
+\begin{schema}{DatenRecyclen}
+ \Delta BANK \\
+ MetadatenEingabe? : METADATEN 
+\where
+ MetadatenEingabe? \in VerantwortlicheMetadaten \\
+ MetadatenEingabe? \in KlassifizierungMetadaten \\
+ Datenklassifizierung' = \{ MetadatenEingabe? \} \ndres Datenklassifizierung \\
+ VerantwortlicheEinheiten' = \{ MetadatenEingabe? \} \ndres VerantwortlicheEinheiten \\
+ Rollen' = Rollen \\
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte
+\end{schema}
+
+
+
+\begin{schema}{DatenSpeichern}
+ \Delta SYSTEM \\
+ \Delta CIDSYSTEMEINVENTAR \\
+ \Xi BANK \\
+ SystemIdEingabe? : SYSTEMID \\
+ SystemLandEingabe? : LAND \\
+ SystemMetadatenEingabe? : METADATEN \\
+ SystemDateninhaltEingabe? : INHALT 
+\where
+ SystemLand' = SystemLandEingabe? \land SystemId' = SystemIdEingabe? \land ( ( SystemLandEingabe? = SCHWEIZ \land ( Datenklassifizierung~SystemMetadatenEingabe? ) \in CIDDATENKATEGORIEN \land CIDSpeichersystemeIds' = CIDSpeichersystemeIds \cup \{ SystemIdEingabe? \} \land SystemDateninhalte' = SystemDateninhalte \oplus \{ SystemMetadatenEingabe? \mapsto SystemDateninhaltEingabe? \} \land SystemDatenklassifizierung' = SystemDatenklassifizierung \oplus \{ SystemMetadatenEingabe? \mapsto ( Datenklassifizierung~SystemMetadatenEingabe? ) \} ) \lor ( ( Datenklassifizierung~SystemMetadatenEingabe? ) \notin CIDDATENKATEGORIEN \land CIDSpeichersystemeIds' = CIDSpeichersystemeIds \land SystemDateninhalte' = SystemDateninhalte \oplus \{ SystemMetadatenEingabe? \mapsto SystemDateninhaltEingabe? \} \land SystemDatenklassifizierung' = SystemDatenklassifizierung \oplus \{ SystemMetadatenEingabe? \mapsto ( Datenklassifizierung~SystemMetadatenEingabe? ) \} ) \lor ( SystemLandEingabe? \neq SCHWEIZ \land ( Datenklassifizierung~SystemMetadatenEingabe? ) \in CIDDATENKATEGORIEN \land CIDSpeichersystemeIds' = CIDSpeichersystemeIds \land SystemDateninhalte' = SystemDateninhalte \oplus \{ SystemMetadatenEingabe? \mapsto XXXXX \} \land SystemDatenklassifizierung' = SystemDatenklassifizierung \oplus \{ SystemMetadatenEingabe? \mapsto GESCHUETZT \} ) )
+\end{schema}
+
+
+
+\begin{schema}{RolleHinzufuegen}
+ \Delta BANK \\
+ RolleEingabe? : ROLLE \\
+ MetadatenEingabe? : METADATEN 
+\where
+ Rollen' = Rollen \cup \{ ( RolleEingabe? , MetadatenEingabe? ) \} \\
+ Datenklassifizierung' = Datenklassifizierung \\
+ VerantwortlicheEinheiten' = VerantwortlicheEinheiten \\
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte
+\end{schema}
+
+
+
+\begin{schema}{BenutzerZugriffsrechtHinzufuegen}
+ \Delta BANK \\
+ BenutzerEingabe? : BENUTZER \\
+ RolleEingabe? : ROLLE 
+\where
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte \cup \{ ( BenutzerEingabe? , RolleEingabe? ) \} \\
+ Rollen' = Rollen \\
+ Datenklassifizierung' = Datenklassifizierung \\
+ VerantwortlicheEinheiten' = VerantwortlicheEinheiten
+\end{schema}
+
+
+
+\begin{schema}{BenutzerZugriffsrechtEntfernen}
+ \Delta BANK \\
+ BenutzerEingabe? : BENUTZER \\
+ RolleEingabe? : ROLLE 
+\where
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte \setminus \{ ( BenutzerEingabe? , RolleEingabe? ) \} \\
+ Rollen' = Rollen \\
+ Datenklassifizierung' = Datenklassifizierung \\
+ VerantwortlicheEinheiten' = VerantwortlicheEinheiten
+\end{schema}
+
+
+
+\begin{schema}{AufSystemdatenZugreifen}
+ \Xi SYSTEM \\
+ \Xi BANK \\
+ BenutzerEingabe? : BENUTZER \\
+ BenutzerLandEingabe? : LAND \\
+ SystemIdEingabe? : SYSTEMID \\
+ SystemZugriffMetadatenEingabe? : METADATEN \\
+ InhaltAusgabe! : \power INHALT 
+\where
+ SystemIdEingabe? = SystemId \land SystemZugriffMetadatenEingabe? \in Rollen \limg ( BenutzerZugriffsrechte \limg \{ BenutzerEingabe? \} \rimg ) \rimg \land ( ( SystemDatenklassifizierung \limg \{ SystemZugriffMetadatenEingabe? \} \rimg \subseteq CIDDATENKATEGORIEN \land BenutzerLandEingabe? \neq SCHWEIZ \land InhaltAusgabe! = \{ XXXXX \} ) \lor ( ( SystemDatenklassifizierung \limg \{ SystemZugriffMetadatenEingabe? \} \rimg \cap CIDDATENKATEGORIEN =~\emptyset \lor BenutzerLandEingabe? = SCHWEIZ ) \land InhaltAusgabe! = SystemDateninhalte \limg \{ SystemZugriffMetadatenEingabe? \} \rimg ) )
+\end{schema}
+
+
+
+\begin{schema}{AufMassendatenZugreifen}
+ \Xi BANK \\
+ \Xi SYSTEM \\
+ \Delta CIDMASSENZUGRIFFSLOG \\
+ BenutzerEingabe? : BENUTZER \\
+ SystemIdEingabe? : SYSTEMID \\
+ BenutzerLandEingabe? : LAND \\
+ MasseninhaltAusgabe! : \power INHALT 
+\where
+ ( SystemIdEingabe? = SystemId \land ROLLEMASSENZUGRIFFCID \in BenutzerZugriffsrechte \limg \{ BenutzerEingabe? \} \rimg \land BenutzerLandEingabe? = SCHWEIZ \land \ran SystemDatenklassifizierung \cap CIDDATENKATEGORIEN \neq \emptyset \land CIDMassenzugriffslog' = CIDMassenzugriffslog \cup \{ ( BenutzerEingabe? , SystemIdEingabe? ) \} \land MasseninhaltAusgabe! = \ran SystemDateninhalte ) \lor ( SystemIdEingabe? = SystemId \land ( ROLLEMASSENZUGRIFFCID \in BenutzerZugriffsrechte \limg \{ BenutzerEingabe? \} \rimg \lor ROLLEMASSENZUGRIFFNICHTCID \in BenutzerZugriffsrechte \limg \{ BenutzerEingabe? \} \rimg ) \land \ran SystemDatenklassifizierung \cap CIDDATENKATEGORIEN =~\emptyset \land CIDMassenzugriffslog' = CIDMassenzugriffslog \land MasseninhaltAusgabe! = \ran SystemDateninhalte )
+\end{schema}
+
+
