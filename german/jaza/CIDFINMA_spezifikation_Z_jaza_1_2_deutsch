@@ -14,8 +14,8 @@ Datenklassifizierung, Speicherung von CID und nicht-CID ausserhalb der Schweiz u
 - BENUTZER1 ausserhalb der Schweiz greift auf KUNDENMAME auf SYSTEM1 zu, InhaltAusgabe!=={XXXXX} (Operation=AufSystemdatenZugreifen);
 - BENUTZER2 in der Schweiz ohne Zugriffsrechte versucht, auf PROMINENZSTATUS auf SYSTEM1 zuzugreifen, keine Lösung.
 
-JAZA> load C:\jaza\test26.zed
-Loading 'C:\jaza\test26.zed' ...
+JAZA> load CIDFINMA_spezifikation_Z_latex_deutsch.zed
+Loading 'CIDFINMA_spezifikation_Z_latex_deutsch.zed' ...
 Added 24 definitions.
 JAZA> do BankInitiieren
 \lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
