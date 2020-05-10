@@ -16,8 +16,8 @@ Datenklassifizierung, Speicherung von CID und nicht-CID ausserhalb der Schweiz u
 - BENUTZER2 ausserhalb der Schweiz greift auf Massendaten auf SYSTEM1 zu, MasseninhaltAusgabe!=={JA, XXXXX} (Operation=AufMassendatenZugreifen);
 - BENUTZER3 ausserhalb der Schweiz ohne Masendatenzugriffsrechte greift auf Massendaten auf SYSTEM1 zu, nichts retoutniert, keine Lösung von Jaza gefunden (Operation=AufMassendatenZugreifen);
 
-JAZA> load C:\jaza\test26.zed
-Loading 'C:\jaza\test26.zed' ...
+JAZA> load CIDFINMA_spezifikation_Z_latex_deutsch.zed
+Loading 'CIDFINMA_spezifikation_Z_latex_deutsch.zed' ...
 Added 24 definitions.
 JAZA> do BankInitiieren
 \lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
