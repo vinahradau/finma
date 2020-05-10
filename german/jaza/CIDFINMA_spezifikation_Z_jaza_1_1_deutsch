@@ -15,8 +15,8 @@ Datenklassifizierung, Speicherung von CID und nicht-CID in der Schweiz und Zugri
 - Rolle ROLLEGUIBENUTZER vom BENUTZER1 entfernt (Operation=BenutzerZugriffsrechtEntfernen);
 - Datenverantwortung und Datenklassifizierung für KUNDENMAME entfernt (Operation=DatenRecyclen).
 
-JAZA> load C:\jaza\test26.zed
-Loading 'C:\jaza\test26.zed' ...
+JAZA> load CIDFINMA_spezifikation_Z_latex_deutsch.zed
+Loading 'CIDFINMA_spezifikation_Z_latex_deutsch.zed' ...
 Added 24 definitions.
 JAZA> do BankInitiieren
 \lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
