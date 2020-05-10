@@ -1,0 +1,339 @@
+CID FINMA: Spezifikation in Z
+Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
+
+Fall 1.1
+Datenklassifizierung, Speicherung von CID und nicht-CID in der Schweiz und Zugriff
+
+- KUNDENMAME als DIREKT CID klassifiziert (Operation: DatenklassifizierungImplementieren);
+- PROMINENZSTATUS als NICHTCID klassifiziert (Operation: DatenklassifizierungImplementieren);
+- KUNDENMAME=MUSTERMANN auf einem System in der Schweiz gespeichert, SystemDateninhalte'=={(KUNDENNAME, MUSTERMANN)}, Identifizierer SYSTEM1 in CIDSpeichersystemeIds eingetragen (Operation: DatenSpeichern);
+- PROMINENZSTATUS=JA auf einem System in der Schweiz gespeichert, SystemDateninhalte'=={(PROMINENZSTATUS, JA)}, (Operation=DatenSpeichern);
+- Rolle ROLLEGUIBENUTZER erhält Zugriff auf Daten: Rollen'=={(ROLLEGUIBENUTZER, KUNDENNAME), (ROLLEGUIBENUTZER, PROMINENZSTATUS)} (Operation=RolleHinzufuegen);
+- BENUTZER1 erhält Zugriffsrecht auf KUNDENMAME und PROMINENZSTATUS  durch die Rolle ROLLEGUIBENUTZER: BenutzerZugriffsrechte'=={(BENUTZER1, ROLLEGUIBENUTZER)} (Operation=BenutzerZugriffsrechtHinzufuegen);
+- BENUTZER1 in der Schweiz greift auf KUNDENMAME auf SYSTEM1 zu, InhaltAusgabe!=={MUSTERMANN} (Operation=AufSystemdatenZugreifen);
+- BENUTZER2 in der Schweiz ohne Zugriffsrechte versucht, auf PROMINENZSTATUS auf SYSTEM1 zuzugreifen, keine Lösung;
+- Rolle ROLLEGUIBENUTZER vom BENUTZER1 entfernt (Operation=BenutzerZugriffsrechtEntfernen);
+- Datenverantwortung und Datenklassifizierung für KUNDENMAME entfernt (Operation=DatenRecyclen).
+
+JAZA> load C:\jaza\test26.zed
+Loading 'C:\jaza\test26.zed' ...
+Added 24 definitions.
+JAZA> do BankInitiieren
+\lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
+       CIDSpeichersystemeIds'==\{\}, Datenklassifizierung'==\{\},
+       KlassifizierungMetadaten'==\{\}, Rollen'==\{\}, RollenRollen'==\{\},
+       SystemDateninhalte'==\{\}, SystemDatenklassifizierung'==\{\},
+       SystemId'==SYSTEM1, SystemInhalteMetadaten'==\{\},
+       SystemLand'==DEUTSCHLAND, SystemMetadaten'==\{\},
+       VerantwortlicheEinheiten'==\{\},
+       VerantwortlicheMetadaten'==\{\} \rblot
+JAZA> ; DatenklassifizierungImplementieren
+    Input MetadatenEingabe? = KUNDENNAME
+    Input EinheitEingabe? = EINHEIT1
+    Input DatenkategorieEingabe? = DIREKT
+\lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
+       CIDSpeichersystemeIds'==\{\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT)\},
+       KlassifizierungMetadaten'==\{KUNDENNAME\}, Rollen'==\{\},
+       RollenRollen'==\{\}, SystemDateninhalte'==\{\},
+       SystemDatenklassifizierung'==\{\}, SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{\}, SystemLand'==DEUTSCHLAND,
+       SystemMetadaten'==\{\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME\} \rblot
+JAZA>
+JAZA>
+JAZA> ; DatenklassifizierungImplementieren
+    Input MetadatenEingabe? = PROMINENZSTATUS
+    Input EinheitEingabe? = EINHEIT1
+    Input DatenkategorieEingabe? = NICHTCID
+\lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
+       CIDSpeichersystemeIds'==\{\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{\}, RollenRollen'==\{\}, SystemDateninhalte'==\{\},
+       SystemDatenklassifizierung'==\{\}, SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{\}, SystemLand'==DEUTSCHLAND,
+       SystemMetadaten'==\{\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA> ; DatenSpeichern
+    Input SystemIdEingabe? = SYSTEM1
+    Input SystemLandEingabe? = SCHWEIZ
+    Input SystemMetadatenEingabe? = KUNDENNAME
+    Input SystemDateninhaltEingabe? = MUSTERMANN
+\lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
+       CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{\}, RollenRollen'==\{\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT)\},
+       SystemId'==SYSTEM1, SystemInhalteMetadaten'==\{KUNDENNAME\},
+       SystemLand'==SCHWEIZ, SystemMetadaten'==\{KUNDENNAME\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA> ; DatenSpeichern
+    Input SystemIdEingabe? = SYSTEM1
+    Input SystemLandEingabe? = SCHWEIZ
+    Input SystemMetadatenEingabe? = PROMINENZSTATUS
+    Input SystemDateninhaltEingabe? = JA
+\lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
+       CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{\}, RollenRollen'==\{\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN),
+                              (PROMINENZSTATUS, JA)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                      (PROMINENZSTATUS, NICHTCID)\},
+       SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       SystemLand'==SCHWEIZ,
+       SystemMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA>
+JAZA> ; RolleHinzufuegen
+    Input RolleEingabe? = ROLLEGUIBENUTZER
+    Input MetadatenEingabe? = KUNDENNAME
+\lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
+       CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{(ROLLEGUIBENUTZER, KUNDENNAME)\},
+       RollenRollen'==\{ROLLEGUIBENUTZER\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN),
+                              (PROMINENZSTATUS, JA)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                      (PROMINENZSTATUS, NICHTCID)\},
+       SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       SystemLand'==SCHWEIZ,
+       SystemMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA> ; RolleHinzufuegen
+    Input RolleEingabe? = ROLLEGUIBENUTZER
+    Input MetadatenEingabe? = PROMINENZSTATUS
+\lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
+       CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{(ROLLEGUIBENUTZER, KUNDENNAME),
+                  (ROLLEGUIBENUTZER, PROMINENZSTATUS)\},
+       RollenRollen'==\{ROLLEGUIBENUTZER\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN),
+                              (PROMINENZSTATUS, JA)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                      (PROMINENZSTATUS, NICHTCID)\},
+       SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       SystemLand'==SCHWEIZ,
+       SystemMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA> ; BenutzerZugriffsrechtHinzufuegen
+    Input BenutzerEingabe? = BENUTZER1
+    Input RolleEingabe? = ROLLEGUIBENUTZER
+\lblot BenutzerZugriffsrechte'==\{(BENUTZER1, ROLLEGUIBENUTZER)\},
+       CIDMassenzugriffslog'==\{\}, CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{(ROLLEGUIBENUTZER, KUNDENNAME),
+                  (ROLLEGUIBENUTZER, PROMINENZSTATUS)\},
+       RollenRollen'==\{ROLLEGUIBENUTZER\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN),
+                              (PROMINENZSTATUS, JA)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                      (PROMINENZSTATUS, NICHTCID)\},
+       SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       SystemLand'==SCHWEIZ,
+       SystemMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA> ; AufSystemdatenZugreifen
+    Input BenutzerEingabe? = BENUTZER1
+    Input BenutzerLandEingabe? = SCHWEIZ
+    Input SystemIdEingabe? = SYSTEM1
+    Input SystemZugriffMetadatenEingabe? = KUNDENNAME
+\lblot BenutzerZugriffsrechte'==\{(BENUTZER1, ROLLEGUIBENUTZER)\},
+       CIDMassenzugriffslog'==\{\}, CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       InhaltAusgabe!==\{MUSTERMANN\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{(ROLLEGUIBENUTZER, KUNDENNAME),
+                  (ROLLEGUIBENUTZER, PROMINENZSTATUS)\},
+       RollenRollen'==\{ROLLEGUIBENUTZER\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN),
+                              (PROMINENZSTATUS, JA)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                      (PROMINENZSTATUS, NICHTCID)\},
+       SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       SystemLand'==SCHWEIZ,
+       SystemMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA> ; AufSystemdatenZugreifen
+    Input BenutzerEingabe? = BENUTZER1
+    Input BenutzerLandEingabe? = SCHWEIZ
+    Input SystemIdEingabe? = SYSTEM1
+    Input SystemZugriffMetadatenEingabe? = PROMINENZSTATUS
+\lblot BenutzerZugriffsrechte'==\{(BENUTZER1, ROLLEGUIBENUTZER)\},
+       CIDMassenzugriffslog'==\{\}, CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       InhaltAusgabe!==\{JA\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{(ROLLEGUIBENUTZER, KUNDENNAME),
+                  (ROLLEGUIBENUTZER, PROMINENZSTATUS)\},
+       RollenRollen'==\{ROLLEGUIBENUTZER\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN),
+                              (PROMINENZSTATUS, JA)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                      (PROMINENZSTATUS, NICHTCID)\},
+       SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       SystemLand'==SCHWEIZ,
+       SystemMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA> ; AufSystemdatenZugreifen
+    Input BenutzerEingabe? = BENUTZER1
+    Input BenutzerLandEingabe? = USA
+    Input SystemIdEingabe? = SYSTEM1
+    Input SystemZugriffMetadatenEingabe? = KUNDENNAME
+\lblot BenutzerZugriffsrechte'==\{(BENUTZER1, ROLLEGUIBENUTZER)\},
+       CIDMassenzugriffslog'==\{\}, CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       InhaltAusgabe!==\{XXXXX\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{(ROLLEGUIBENUTZER, KUNDENNAME),
+                  (ROLLEGUIBENUTZER, PROMINENZSTATUS)\},
+       RollenRollen'==\{ROLLEGUIBENUTZER\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN),
+                              (PROMINENZSTATUS, JA)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                      (PROMINENZSTATUS, NICHTCID)\},
+       SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       SystemLand'==SCHWEIZ,
+       SystemMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA> ; AufSystemdatenZugreifen
+    Input BenutzerEingabe? = BENUTZER1
+    Input BenutzerLandEingabe? = USA
+    Input SystemIdEingabe? = SYSTEM1
+    Input SystemZugriffMetadatenEingabe? = PROMINENZSTATUS
+\lblot BenutzerZugriffsrechte'==\{(BENUTZER1, ROLLEGUIBENUTZER)\},
+       CIDMassenzugriffslog'==\{\}, CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       InhaltAusgabe!==\{JA\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{(ROLLEGUIBENUTZER, KUNDENNAME),
+                  (ROLLEGUIBENUTZER, PROMINENZSTATUS)\},
+       RollenRollen'==\{ROLLEGUIBENUTZER\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN),
+                              (PROMINENZSTATUS, JA)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                      (PROMINENZSTATUS, NICHTCID)\},
+       SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       SystemLand'==SCHWEIZ,
+       SystemMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA> ; AufSystemdatenZugreifen
+    Input BenutzerEingabe? = BENUTZER2
+    Input BenutzerLandEingabe? = USA
+    Input SystemIdEingabe? = SYSTEM1
+    Input SystemZugriffMetadatenEingabe? = KUNDENNAME
+No solutions
+JAZA>
+
+JAZA> ; BenutzerZugriffsrechtEntfernen
+    Input BenutzerEingabe? = BENUTZER1
+    Input RolleEingabe? = ROLLEGUIBENUTZER
+\lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
+       CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                (PROMINENZSTATUS, NICHTCID)\},
+       KlassifizierungMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       Rollen'==\{(ROLLEGUIBENUTZER, KUNDENNAME),
+                  (ROLLEGUIBENUTZER, PROMINENZSTATUS)\},
+       RollenRollen'==\{ROLLEGUIBENUTZER\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN),
+                              (PROMINENZSTATUS, JA)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                      (PROMINENZSTATUS, NICHTCID)\},
+       SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       SystemLand'==SCHWEIZ,
+       SystemMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       VerantwortlicheEinheiten'==\{(KUNDENNAME, EINHEIT1),
+                                    (PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\} \rblot
+JAZA>
+JAZA>
+JAZA> ; DatenRecyclen
+    Input MetadatenEingabe? = KUNDENNAME
+\lblot BenutzerZugriffsrechte'==\{\}, CIDMassenzugriffslog'==\{\},
+       CIDSpeichersystemeIds'==\{SYSTEM1\},
+       Datenklassifizierung'==\{(PROMINENZSTATUS, NICHTCID)\},
+       KlassifizierungMetadaten'==\{PROMINENZSTATUS\},
+       Rollen'==\{(ROLLEGUIBENUTZER, KUNDENNAME),
+                  (ROLLEGUIBENUTZER, PROMINENZSTATUS)\},
+       RollenRollen'==\{ROLLEGUIBENUTZER\},
+       SystemDateninhalte'==\{(KUNDENNAME, MUSTERMANN),
+                              (PROMINENZSTATUS, JA)\},
+       SystemDatenklassifizierung'==\{(KUNDENNAME, DIREKT),
+                                      (PROMINENZSTATUS, NICHTCID)\},
+       SystemId'==SYSTEM1,
+       SystemInhalteMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       SystemLand'==SCHWEIZ,
+       SystemMetadaten'==\{KUNDENNAME, PROMINENZSTATUS\},
+       VerantwortlicheEinheiten'==\{(PROMINENZSTATUS, EINHEIT1)\},
+       VerantwortlicheMetadaten'==\{PROMINENZSTATUS\} \rblot
+JAZA>
