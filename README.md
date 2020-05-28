@@ -8,6 +8,8 @@ The CID FINMA regulation was published by the Swiss Financial Market Supervisory
 
 This Z specification can be animated using the jaza animator. Jaza is available for download as an executable on github, thanks to Mark Utting (S. References).
 
+The Alloy specification can be executed within the Alloy Analyzer GUI.
+
 # Project Contents
 
 1. CIDFINMA_spec_Z.zed16 file with the Z schema definitions and operations. The file can be opened and edited with the CZT editor (S. References).
