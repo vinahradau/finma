@@ -1,5 +1,12 @@
 module CIDDomain
 
+/*
+Formal Alloy specification for Client Identification Data Requirements for banks in Switerland (further refered to as FINMA)
+https://www.finma.ch/de/~/media/finma/dokumente/rundschreiben-archiv/finma-rs200821---30-06-2017.pdf
+developed by Serge (vinahradau@yahooo.de)
+*/
+
+// CID data classification (FINMA 10*)
 enum DATACATEGORY {DIRECT, INDIRECT, POTENTIALLY_DIRECT, PROTECTED, NONCID}
 
 pred isCID[c : DATACATEGORY]{c = DIRECT or c = INDIRECT or c = POTENTIALLY_DIRECT}
@@ -8,15 +15,19 @@ enum METADATA {CUSTOMER_NAME, CUSTOMER_ADDRESS, IS_VIP_CUSTOMER}
 
 enum ENTITY {ENTITY1, ENTITY2, ENTITY3}
 
+// CID protection risks are country specific (FINMA 20*)
 enum COUNTRY {SWITZERLAND, UK, USA, GERMANY}
 
 enum CONTENT {MUSTERMANN, SEESTRASSE, YES, NO, XXXXX}
 
-enum USER {USER1, USER2, USER3}
+enum USER {USER1, USER2, USER3, USER4, USER5}
 
 enum NODEID {NODE1, NODE2, NODE3}
 
+// role and function based authorisation system in place (FINMA 22*)
 enum ROLE {ROLE_GUI_USER_CID, ROLE_GUI_USER_NO_CID, ROLE_BULK_CID, ROLE_BULK_NO_CID}
+
+pred isCIDRole[r : ROLE]{r = ROLE_GUI_USER_CID or r = ROLE_BULK_CID}
 
 sig NODE {
 nodeId: NODEID,
@@ -26,22 +37,52 @@ nodeDataContents: METADATA -> lone CONTENT
 }
 
 fact {
+// no node outside Switzerland should have unprotected CID data stored (FINMA 20*)
 no n : NODE | n.nodeCountry != SWITZERLAND and (all k : METADATA | some v : DATACATEGORY | k -> v in n.nodeDataCategories and isCID[v])
 }
 
 fact {
+// all nodes with CID data stored should be recorded (FINMA 15*)
 no n : NODE | (all k : METADATA | some v : DATACATEGORY | k -> v in n.nodeDataCategories and isCID[v]) and not n.nodeId in DOMAIN.cidStoringNodesIds
 }
 
 sig DOMAIN {
+// CID data classification (FINMA 10*)
 dataClassification: METADATA -> lone DATACATEGORY,
+
+// CID data owner (FINMA 13*)
 dataOwner: METADATA -> lone ENTITY,
+
 nodes: NODEID -> lone NODE,
+
+teams: ENTITY -> USER,
+// an internal employee has to responsible for the compliance of  outsourced CID activities (FINMA 50*)
+internalUsers: set USER,
+externalUsers: set USER,
+
+// role and function based authorisation system in place (FINMA 22*)
 roles: ROLE -> METADATA,
 userAccessRights: USER -> ROLE,
+
+// CID storing Nodes have to be recorded (FINMA 15*)
 cidStoringNodesIds: set NODEID,
+// logs for bulk CID access (FINMA 40*)
 cidBulkAccessLog: USER -> NODEID
 }{
+}
+
+fact {
+all u : (DOMAIN.userAccessRights).univ | u in univ.(DOMAIN.teams) // all users with access rights have to be assigned a team
+all u : (DOMAIN.userAccessRights).univ | u in DOMAIN.internalUsers or u in DOMAIN.externalUsers // all users with access rights have to be classfied as internal or external
+all u : DOMAIN.internalUsers | u not in DOMAIN.externalUsers // a user/employee can be either internal or external (FINMA 32*)
+all u : DOMAIN.externalUsers | u not in DOMAIN.internalUsers
+}
+
+fact {
+// external users with CID access rights have to have internal user in their teams:
+// an internal employee has to responsible for the compliance of  outsourced CID activities (FINMA 50*)
+no u : DOMAIN.externalUsers | 
+(some r : DOMAIN.userAccessRights[u] | isCIDRole[r]) and (DOMAIN.teams[(DOMAIN.teams).u] & DOMAIN.internalUsers = none)
 }
 
 pred AddNodeCountry
@@ -75,12 +116,14 @@ nodeid_in: NODEID,
 metadata_in: METADATA,
 content_in: CONTENT)
 {
+// nodes containing CID data have to be recorded (FINMA 15*)
 (d.nodes[nodeid_in].nodeCountry = SWITZERLAND and isCID[d.dataClassification[metadata_in]] and d'.nodes[nodeid_in].nodeDataContents = d.nodes[nodeid_in].nodeDataContents ++ metadata_in -> content_in
 and d'.nodes[nodeid_in].nodeDataCategories = d.nodes[nodeid_in].nodeDataCategories ++ metadata_in -> d.dataClassification[metadata_in] and d'.cidStoringNodesIds = d.cidStoringNodesIds + nodeid_in)
 or
 (not isCID[d.dataClassification[metadata_in]] and d'.nodes[nodeid_in].nodeDataContents = d.nodes[nodeid_in].nodeDataContents ++ metadata_in -> content_in
 and d'.nodes[nodeid_in].nodeDataCategories = d.nodes[nodeid_in].nodeDataCategories ++ metadata_in -> d.dataClassification[metadata_in])
 or
+// CID data stored outside Switzerland has to be protected (FINMA 20*)
 (not(d.nodes[nodeid_in].nodeCountry = SWITZERLAND) and isCID[d.dataClassification[metadata_in]] and d'.nodes[nodeid_in].nodeDataContents = d.nodes[nodeid_in].nodeDataContents ++ metadata_in -> XXXXX
 and d'.nodes[nodeid_in].nodeDataCategories = d.nodes[nodeid_in].nodeDataCategories ++ metadata_in -> PROTECTED)
 }
@@ -102,6 +145,31 @@ node_in: NODEID
 (d'.cidBulkAccessLog = d.cidBulkAccessLog ++ user_in -> node_in)
 }
 
+pred AddUser
+(d, d':DOMAIN,
+user_in: USER,
+entity_in: ENTITY)
+{
+d'.teams = d.teams ++ entity_in -> user_in
+}
+
+
+pred AddInternalUser
+(d, d':DOMAIN,
+user_in: USER)
+{
+user_in not in d.internalUsers => d'.internalUsers = d.internalUsers + user_in 
+and user_in in d.externalUsers => d'.externalUsers = d.externalUsers - user_in 
+}
+
+pred AddExternalUser
+(d, d':DOMAIN,
+user_in: USER)
+{
+user_in not in d.externalUsers => d'.externalUsers = d.externalUsers + user_in 
+and user_in in d.internalUsers => d'.internalUsers = d.internalUsers - user_in 
+}
+
 pred AddUserAccessRight
 (d, d':DOMAIN,
 user_in: USER,
@@ -118,10 +186,12 @@ metadata_in: METADATA,
 country_in: 
 COUNTRY) : CONTENT
 {
+// role and function based authorisation system in place (FINMA 22*)
 metadata_in in domain_in.roles[domain_in.userAccessRights[user_in]] and not isCID[domain_in.nodes[nodeid_in].nodeDataCategories[metadata_in]] => domain_in.nodes[nodeid_in].nodeDataContents[metadata_in]
 else
 metadata_in in domain_in.roles[domain_in.userAccessRights[user_in]] and country_in = SWITZERLAND => domain_in.nodes[nodeid_in].nodeDataContents[metadata_in]
-else 
+else
+// CID data accessed from outside Switzerland has to be rotected (FINMA 20*)
 metadata_in in domain_in.roles[domain_in.userAccessRights[user_in]] and isCID[domain_in.nodes[nodeid_in].nodeDataCategories[metadata_in]] and not(country_in = SWITZERLAND) => XXXXX
 else
 none
@@ -139,6 +209,7 @@ and
 (all k : METADATA | all v : DATACATEGORY | k -> v in domain_in.nodes[nodeid_in].nodeDataCategories => not isCID[v])
 ) => domain_in.nodes[nodeid_in].nodeDataContents
 else
+// logs for CID bul access (FINMA 40*)
 (ROLE_BULK_CID in domain_in.userAccessRights[user_in] and country_in = SWITZERLAND
 and (some k : METADATA | some v : DATACATEGORY | k -> v in domain_in.nodes[nodeid_in].nodeDataCategories and isCID[v])
 and AddCIDBulkAccessLog[DOMAIN, DOMAIN, user_in, domain_in.nodes[nodeid_in].nodeId])
@@ -192,7 +263,10 @@ pred setupNodes() {
 DOMAIN.nodes[NODE1].nodeId = NODE1
 DOMAIN.nodes[NODE2].nodeId = NODE2
 
+// NODE1 in Switzerland 
 AddNodeCountry[DOMAIN, DOMAIN, NODE1, SWITZERLAND]
+
+// NODE2 outside Switzerland
 AddNodeCountry[DOMAIN, DOMAIN, NODE2, USA]
 
 StoreData[DOMAIN, DOMAIN, NODE1, CUSTOMER_NAME, MUSTERMANN]
@@ -236,6 +310,17 @@ NODE2 not in DOMAIN.cidStoringNodesIds
 }
 
 pred setupUserAccess() {
+AddUser[DOMAIN, DOMAIN, (USER1 + USER2 + USER5), ENTITY2]
+
+// internal employee respinsible for compliance of external CID activities (FINMA 50*)
+AddInternalUser[DOMAIN, DOMAIN, USER5]
+AddExternalUser[DOMAIN, DOMAIN, USER1]
+AddExternalUser[DOMAIN, DOMAIN, USER2]
+
+#DOMAIN.internalUsers = 1
+#DOMAIN.externalUsers = 2
+#DOMAIN.teams = 3
+
 AddRole[DOMAIN, DOMAIN, ROLE_GUI_USER_CID, (CUSTOMER_NAME + CUSTOMER_ADDRESS + IS_VIP_CUSTOMER)]
 AddRole[DOMAIN, DOMAIN, ROLE_GUI_USER_NO_CID, (IS_VIP_CUSTOMER)]
 
