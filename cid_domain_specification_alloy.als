@@ -1,7 +1,7 @@
 module CIDDomain
 
 /*
-Formal Alloy specification for Client Identification Data Requirements for banks in Switerland (further refered to as FINMA)
+Formal Alloy specification for Client Identification Data Requirements for banks in Switerland (further referred to as FINMA)
 https://www.finma.ch/de/~/media/finma/dokumente/rundschreiben-archiv/finma-rs200821---30-06-2017.pdf
 developed by Serge (vinahradau@yahooo.de)
 */
@@ -56,7 +56,7 @@ dataOwner: METADATA -> lone ENTITY,
 nodes: NODEID -> lone NODE,
 
 teams: ENTITY -> USER,
-// an internal employee has to responsible for the compliance of  outsourced CID activities (FINMA 50*)
+// an internal employee has to be responsible for the compliance of outsourced CID activities (FINMA 50*)
 internalUsers: set USER,
 externalUsers: set USER,
 
@@ -191,7 +191,7 @@ metadata_in in domain_in.roles[domain_in.userAccessRights[user_in]] and not isCI
 else
 metadata_in in domain_in.roles[domain_in.userAccessRights[user_in]] and country_in = SWITZERLAND => domain_in.nodes[nodeid_in].nodeDataContents[metadata_in]
 else
-// CID data accessed from outside Switzerland has to be rotected (FINMA 20*)
+// CID data accessed from outside Switzerland has to be protected (FINMA 20*)
 metadata_in in domain_in.roles[domain_in.userAccessRights[user_in]] and isCID[domain_in.nodes[nodeid_in].nodeDataCategories[metadata_in]] and not(country_in = SWITZERLAND) => XXXXX
 else
 none
