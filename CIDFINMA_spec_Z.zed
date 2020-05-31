@@ -1,3 +1,5 @@
+CID FINMA Specification using the Z Notation
+Developed By Serge (Siarhei Vinahradau, vinahradau@yahoo.de
 \begin{zsection}	 \SECTION Specification \parents~standard\_toolkit , zeves\_toolkit
 \end{zsection}
 
@@ -22,7 +24,10 @@
 \begin{zed}USER ::= USER1 | USER2 | USER3
 \end{zed}
 
-\begin{zed}ROLE ::= ROLEGUIUSER | ROLEBULKCID | ROLEBULK | ROLE1
+\begin{zed}ROLE ::= ROLEGUICIDUSER | ROLEGUIUSER | ROLEBULKCID | ROLEBULK | ROLE1
+\end{zed}
+
+\begin{zed}CIDROLES == \{ ROLEGUICIDUSER , ROLEBULKCID \}
 \end{zed}
 
 \begin{zed}NODEID ::= NODE1 | NODE2 | NODE3
@@ -49,14 +54,23 @@
  dataOwner : METADATA \pfun ENTITY \\
  roles : ROLE \rel METADATA \\
  userAccessRigths : USER \rel ROLE \\
+ teams : ENTITY \rel USER \\
+ internalUsers : \power USER \\
+ externalUsers : \power USER \\
  classificationMetadata : \power METADATA \\
  dataOwnerMetadata : \power METADATA \\
- rolesRoles : \power ROLE 
+ rolesRoles : \power ROLE \\
+ teamsTeams : \power ENTITY 
 \where
+ \forall u : USER @ \lnot ( u \in internalUsers \land u \in externalUsers ) \\
+ \forall u : \dom userAccessRigths @ u \in \ran teams \\
+ \forall u : \dom userAccessRigths @ u \in internalUsers \lor u \in externalUsers \\
+ \forall u : externalUsers @ \lnot ( userAccessRigths \limg \{ u \} \rimg \cap CIDROLES \neq \emptyset \land teams \limg \dom ( teams \rres \{ u \} ) \rimg \cap internalUsers =~\emptyset ) \\
  classificationMetadata = \dom dataClassification \\
  dataOwnerMetadata = \dom dataOwner \\
  rolesRoles = \dom roles \\
  \dom dataClassification \subseteq \dom dataOwner \\
+ teamsTeams = \dom teams \\
  \# ( \dom dataClassification ) < 6 \\
  \# ( \dom dataOwner ) < 6
 \end{schema}
@@ -70,8 +84,10 @@
 
 
 \begin{schema}{CIDBULKLOG}
- cidBulkAccess : USER \rel NODEID 
+ cidBulkAccess : USER \rel NODEID \\
+ cidBulkAccessUsers : \power USER 
 \where
+ cidBulkAccessUsers = \dom cidBulkAccess \\
  \# ( cidBulkAccess ) < 6
 \end{schema}
 
@@ -85,6 +101,9 @@
  dataOwnerMetadata' =~\emptyset \\
  classificationMetadata' =~\emptyset \\
  userAccessRigths' =~\emptyset \\
+ teams' =~\emptyset \\
+ internalUsers' =~\emptyset \\
+ externalUsers' =~\emptyset \\
  nodeMetadata' =~\emptyset \\
  cidStoringNodesIds' =~\emptyset \\
  nodeId' = NODE1 \\
@@ -99,8 +118,54 @@
 \where
  roles' = roles \cup \{ ( role? , metadata? ) \} \\
  dataClassification' = dataClassification \\
+ teams' = teams \\
+ internalUsers' = internalUsers \\
+ externalUsers' = externalUsers \\
  dataOwner' = dataOwner \\
  userAccessRigths' = userAccessRigths
+\end{schema}
+
+
+\begin{schema}{AddUser}
+ \Delta DOMAIN \\
+ user? : USER \\
+ entity? : ENTITY 
+\where
+ teams' = teams \cup \{ ( entity? , user? ) \} \\
+ userAccessRigths' = userAccessRigths \\
+ roles' = roles \\
+ internalUsers' = internalUsers \\
+ externalUsers' = externalUsers \\
+ dataClassification' = dataClassification \\
+ dataOwner' = dataOwner
+\end{schema}
+
+
+\begin{schema}{AddExternalUser}
+ \Delta DOMAIN \\
+ user? : USER 
+\where
+ externalUsers' = externalUsers \cup \{ user? \} \\
+ internalUsers' = internalUsers \\
+ teams' = teams \\
+ userAccessRigths' = userAccessRigths \\
+ roles' = roles \\
+ dataClassification' = dataClassification \\
+ dataOwner' = dataOwner
+\end{schema}
+
+
+\begin{schema}{AddInternalUser}
+ \Delta DOMAIN \\
+ user? : USER 
+\where
+ internalUsers' = internalUsers \cup \{ user? \} \\
+ externalUsers' = externalUsers \\
+ teams' = teams \\
+ userAccessRigths' = userAccessRigths \\
+ roles' = roles \\
+ dataClassification' = dataClassification \\
+ dataOwner' = dataOwner
 \end{schema}
 
 
@@ -110,6 +175,9 @@
  role? : ROLE 
 \where
  userAccessRigths' = userAccessRigths \cup \{ ( user? , role? ) \} \\
+ teams' = teams \\
+ internalUsers' = internalUsers \\
+ externalUsers' = externalUsers \\
  roles' = roles \\
  dataClassification' = dataClassification \\
  dataOwner' = dataOwner
@@ -123,6 +191,9 @@
 \where
  userAccessRigths' = userAccessRigths \setminus \{ ( user? , role? ) \} \\
  roles' = roles \\
+ teams' = teams \\
+ internalUsers' = internalUsers \\
+ externalUsers' = externalUsers \\
  dataClassification' = dataClassification \\
  dataOwner' = dataOwner
 \end{schema}
@@ -145,12 +216,12 @@
  \Xi NODE \\
  \Xi DOMAIN \\
  user? : USER \\
- nodeId? : NODEID \\
  userCountry? : COUNTRY \\
+ nodeId? : NODEID \\
  accessNodeMetadata? : METADATA \\
  contentOutput! : \power CONTENT 
 \where
- accessNodeMetadata? \in roles \limg ( userAccessRigths \limg \{ user? \} \rimg ) \rimg \land ( ( nodeDataCategories \limg \{ accessNodeMetadata? \} \rimg \subseteq CIDCATEGORIES \land userCountry? \neq SWITZERLAND \land contentOutput! = \{ XXXXX \} ) \lor ( ( nodeDataCategories \limg \{ accessNodeMetadata? \} \rimg \cap CIDCATEGORIES =~\emptyset \lor userCountry? = SWITZERLAND ) \land contentOutput! = nodeDataContents \limg \{ accessNodeMetadata? \} \rimg ) )
+ nodeId? = nodeId \land accessNodeMetadata? \in roles \limg ( userAccessRigths \limg \{ user? \} \rimg ) \rimg \land ( ( nodeDataCategories \limg \{ accessNodeMetadata? \} \rimg \subseteq CIDCATEGORIES \land userCountry? \neq SWITZERLAND \land contentOutput! = \{ XXXXX \} ) \lor ( ( nodeDataCategories \limg \{ accessNodeMetadata? \} \rimg \cap CIDCATEGORIES =~\emptyset \lor userCountry? = SWITZERLAND ) \land contentOutput! = nodeDataContents \limg \{ accessNodeMetadata? \} \rimg ) )
 \end{schema}
 
 
@@ -163,7 +234,7 @@
  userCountry? : COUNTRY \\
  contentOutput! : \power CONTENT 
 \where
- ( ROLEBULK \in userAccessRigths \limg \{ user? \} \rimg \land userCountry? \neq SWITZERLAND \land nodeCountry \neq SWITZERLAND \land cidBulkAccess' = cidBulkAccess \land contentOutput! = \ran nodeDataContents ) \lor ( ROLEBULKCID \in userAccessRigths \limg \{ user? \} \rimg \land userCountry? = SWITZERLAND \land cidBulkAccess' = cidBulkAccess \cap \{ ( user? , nodeId? ) \} \land contentOutput! = \ran nodeDataContents ) \lor ( ROLEBULK \in userAccessRigths \limg \{ user? \} \rimg \land cidBulkAccess' = cidBulkAccess \land \ran nodeDataCategories \cap CIDCATEGORIES =~\emptyset \land contentOutput! = \ran nodeDataContents )
+ ( ROLEBULKCID \in userAccessRigths \limg \{ user? \} \rimg \land userCountry? = SWITZERLAND \land \ran nodeDataCategories \cap CIDCATEGORIES \neq \emptyset \land cidBulkAccess' = cidBulkAccess \cap \{ ( user? , nodeId? ) \} \land contentOutput! = \ran nodeDataContents \land nodeId? = nodeId ) \lor ( ( ROLEBULK \in userAccessRigths \limg \{ user? \} \rimg \lor ROLEBULKCID \in userAccessRigths \limg \{ user? \} \rimg ) \land cidBulkAccess' = cidBulkAccess \land \ran nodeDataCategories \cap CIDCATEGORIES =~\emptyset \land contentOutput! = \ran nodeDataContents \land nodeId? = nodeId )
 \end{schema}
 
 
@@ -202,6 +273,6 @@
  dataClassification' = \{ metadata? \} \ndres dataClassification \\
  dataOwner' = \{ metadata? \} \ndres dataOwner \\
  roles' = roles \\
+ teams' = teams \\
  userAccessRigths' = userAccessRigths
 \end{schema}
-
