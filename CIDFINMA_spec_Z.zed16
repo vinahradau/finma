@@ -1,5 +1,18 @@
-CID FINMA Specification using the Z Notation
+Client Identifying Data (CID) Requirements Specification for banks in Switzerland 
+Language: Z Notation
 Developed By Serge (Siarhei Vinahradau, vinahradau@yahoo.de
+Specification, further refered to as FINMA:
+https://www.finma.ch/de/~/media/finma/dokumente/rundschreiben-archiv/finma-rs200821---30-06-2017.pdf
+
+Specification requirements:
+// CID data classification (FINMA 10*)
+// CID data owner (FINMA 13*)
+// all nodes with CID data stored should be recorded (FINMA 15*)
+// CID protection risks are country specific (FINMA 20*)
+// no node outside Switzerland should have unprotected CID data stored (FINMA 20*)
+// role and function based authorisation system in place (FINMA 22*)
+// logs for bulk CID access (FINMA 40*)
+// an internal employee has to be responsible for the compliance of outsourced CID activities (FINMA 50*)
 ─
   DATACATEGORY ::= DIRECT | INDIRECT | POTENTIALLYDIRECT | PROTECTED | NONCID 
   CIDCATEGORIES == {DIRECT, INDIRECT, POTENTIALLYDIRECT}
@@ -8,10 +21,10 @@ Developed By Serge (Siarhei Vinahradau, vinahradau@yahoo.de
   CONTENT ::= MUSTERMANN | SEESTRASSE | YES | NO | XXXXX 
   ENTITY ::= ENTITY1 | ENTITY2 | ENTITY3
   USER ::= USER1 | USER2 | USER3
-  ROLE ::= ROLEGUIUSER | ROLEBULKCID | ROLEBULK | ROLE1 
+  ROLE ::= ROLEGUICIDUSER | ROLEGUIUSER | ROLEBULKCID | ROLEBULK | ROLE1
+  CIDROLES == {ROLEGUICIDUSER, ROLEBULKCID} 
   NODEID ::= NODE1 | NODE2 | NODE3
 └
-
 ┌ NODE
   nodeId: NODEID
   nodeCountry: COUNTRY
@@ -25,39 +38,45 @@ Developed By Serge (Siarhei Vinahradau, vinahradau@yahoo.de
   nodeMetadata = dom nodeDataCategories
   nodeContentsMetadata = dom nodeDataContents   
 └
-
-┌ CIDSTORINGNODESAUDITLOG
-  NODE
-  cidStoringNodesIds: ℙ NODEID
-|
-   ∀ cidDataCategory : ran nodeDataCategories ⦁ cidDataCategory ∈ CIDCATEGORIES ⇒ nodeId ∈ cidStoringNodesIds
-   #(cidStoringNodesIds) < 6
-└
-
 ┌ DOMAIN
   dataClassification: METADATA ⇸ DATACATEGORY
   dataOwner: METADATA ⇸ ENTITY
   roles: ROLE ↔ METADATA
   userAccessRigths: USER ↔ ROLE
+  teams: ENTITY ↔ USER
+  internalUsers: ℙ USER
+  externalUsers: ℙ USER
   
   classificationMetadata: ℙ METADATA
   dataOwnerMetadata: ℙ METADATA
-  rolesRoles: ℙ ROLE 
-|
+  rolesRoles: ℙ ROLE
+  teamsTeams: ℙ ENTITY  
+|  
+  ∀ u : USER ⦁ ¬(u ∈ internalUsers ∧ u ∈ externalUsers)
+  ∀ u : dom userAccessRigths ⦁ u ∈ ran teams
+  ∀ u : dom userAccessRigths ⦁ u ∈ internalUsers ∨ u ∈ externalUsers
+  ∀ u : externalUsers ⦁ ¬(userAccessRigths⦇{u}⦈ ∩ CIDROLES ≠ ∅ ∧ teams⦇dom (teams ▷ {u})⦈ ∩ internalUsers = ∅)
+ 
   classificationMetadata = dom dataClassification
   dataOwnerMetadata = dom dataOwner
   rolesRoles = dom roles
   dom dataClassification ⊆ dom dataOwner
+  teamsTeams = dom teams 
   #(dom dataClassification) < 6
   #(dom dataOwner)  < 6
 └
-
+┌ CIDSTORINGNODESAUDITLOG
+  cidStoringNodesIds: ℙ NODEID
+|
+   #(cidStoringNodesIds) < 6
+└
 ┌ CIDBULKLOG
   cidBulkAccess: USER ↔ NODEID
+  cidBulkAccessUsers: ℙ USER
 |
+  cidBulkAccessUsers = dom cidBulkAccess
    #(cidBulkAccess) < 6
 └
-
 ┌ InitDomain
   DOMAIN ′
   NODE ′
@@ -67,48 +86,90 @@ Developed By Serge (Siarhei Vinahradau, vinahradau@yahoo.de
   dataOwnerMetadata′ = ∅
   classificationMetadata′ = ∅
   userAccessRigths′ = ∅
+  teams′ = ∅
+  internalUsers′ = ∅
+  externalUsers′ = ∅
   nodeMetadata′ = ∅
   cidStoringNodesIds′ = ∅
   nodeId′ = NODE1
   cidBulkAccess′ = ∅
 └
-
-┌ AssignDataOwner
+┌ AddRole
   ΔDOMAIN
+  role?: ROLE
   metadata?: METADATA
-  dataOwnerInput?: ENTITY
 |
-  dataOwner′ = dataOwner ⊕ {metadata? ↦ dataOwnerInput?}
-  roles′ = roles  
-  userAccessRigths′ = userAccessRigths 
-└
-
-┌ ClassifyDataCategory
-  ΔDOMAIN
-  metadata?: METADATA
-  dataCategory?: DATACATEGORY
-|
-  dataClassification′ = dataClassification ⊕ {metadata? ↦ dataCategory?}
-  roles′ = roles
+  roles′ = roles ∪ {(role?, metadata?)}  
+  dataClassification′ = dataClassification
+  teams′ = teams
+  internalUsers′ = internalUsers
+  externalUsers′ = externalUsers
+  dataOwner′ = dataOwner
   userAccessRigths′ = userAccessRigths
 └
-
-─
-  ImplementDataClassification == AssignDataOwner ∧ ClassifyDataCategory 
-└
-
-┌ RecycleData
+┌ AddUser
   ΔDOMAIN
-  metadata?: METADATA
+  user?: USER
+  entity?: ENTITY
 |
-  metadata? ∈ dataOwnerMetadata
-  metadata? ∈ classificationMetadata
-  dataClassification′ = {metadata?} ⩤ dataClassification
-  dataOwner′ = {metadata?} ⩤ dataOwner
-  roles′ = roles
+  teams′ = teams ∪ {(entity?, user?)}
   userAccessRigths′ = userAccessRigths
+  roles′ = roles
+  internalUsers′ = internalUsers
+  externalUsers′ = externalUsers
+  dataClassification′ = dataClassification
+  dataOwner′ = dataOwner
 └
-
+┌ AddExternalUser
+  ΔDOMAIN
+  user?: USER
+|
+  externalUsers′ = externalUsers ∪ {user?}
+  internalUsers′ = internalUsers
+  teams′ = teams
+  userAccessRigths′ = userAccessRigths
+  roles′ = roles
+  dataClassification′ = dataClassification
+  dataOwner′ = dataOwner
+└
+┌ AddInternalUser
+  ΔDOMAIN
+  user?: USER
+|
+  internalUsers′ = internalUsers ∪ {user?}   
+  externalUsers′ = externalUsers
+  teams′ = teams
+  userAccessRigths′ = userAccessRigths
+  roles′ = roles
+  dataClassification′ = dataClassification
+  dataOwner′ = dataOwner
+└
+┌ AddUserAccessRight
+  ΔDOMAIN
+  user?: USER
+  role?: ROLE
+|
+  userAccessRigths′ = userAccessRigths ∪ {(user?, role?)}
+  teams′ = teams
+  internalUsers′ = internalUsers
+  externalUsers′ = externalUsers 
+  roles′ = roles
+  dataClassification′ = dataClassification
+  dataOwner′ = dataOwner
+└
+┌ RemoveUserAccessRight
+  ΔDOMAIN
+  user?: USER
+  role?: ROLE
+|
+  userAccessRigths′ = userAccessRigths ∖ {(user?, role?)}
+  roles′ = roles
+  teams′ = teams
+  internalUsers′ = internalUsers
+  externalUsers′ = externalUsers
+  dataClassification′ = dataClassification
+  dataOwner′ = dataOwner
+└
 ┌ AddNodeData
   ΔNODE
   ΔCIDSTORINGNODESAUDITLOG
@@ -138,49 +199,17 @@ Developed By Serge (Siarhei Vinahradau, vinahradau@yahoo.de
    ∧nodeDataCategories′ = nodeDataCategories ⊕ {nodeMetadataInput? ↦ PROTECTED})
    )
 └
-
-┌ AddRole
-  ΔDOMAIN
-  role?: ROLE
-  metadata?: METADATA
-|
-  roles′ = roles ∪ {(role?, metadata?)}  
-  dataClassification′ = dataClassification
-  dataOwner′ = dataOwner
-  userAccessRigths′ = userAccessRigths
-└
-
-┌ AddUserAccessRights
-  ΔDOMAIN
-  user?: USER
-  role?: ROLE
-|
-  userAccessRigths′ = userAccessRigths ∪ {(user?, role?)}
-  roles′ = roles
-  dataClassification′ = dataClassification
-  dataOwner′ = dataOwner
-└
-
-┌ RemoveUserAccessRight
-  ΔDOMAIN
-  user?: USER
-  role?: ROLE
-|
-  userAccessRigths′ = userAccessRigths ∖ {(user?, role?)}
-  roles′ = roles
-  dataClassification′ = dataClassification
-  dataOwner′ = dataOwner
-└
-
 ┌ AccessNode
   ΞNODE
   ΞDOMAIN
   user?: USER
-  nodeId?: NODEID
   userCountry?: COUNTRY
+  nodeId?: NODEID
   accessNodeMetadata?: METADATA
   contentOutput!: ℙ CONTENT
 |
+  nodeId? = nodeId
+  ∧
   accessNodeMetadata? ∈ roles⦇(userAccessRigths⦇{user?}⦈)⦈
   ∧
   (
@@ -191,7 +220,6 @@ Developed By Serge (Siarhei Vinahradau, vinahradau@yahoo.de
   ∧ contentOutput! = nodeDataContents⦇{accessNodeMetadata?}⦈)
   )
 └
-
 ┌ AccessBulk
   ΞDOMAIN
   ΞNODE
@@ -205,14 +233,49 @@ Developed By Serge (Siarhei Vinahradau, vinahradau@yahoo.de
   ROLEBULKCID ∈ userAccessRigths⦇{user?}⦈
   ∧ userCountry? = SWITZERLAND
   ∧ ran nodeDataCategories ∩ CIDCATEGORIES ≠ ∅
-  ∧cidBulkAccess′ = cidBulkAccess ∪ {(user?, nodeId?)}
+  ∧cidBulkAccess′ = cidBulkAccess ∩ {(user?, nodeId?)}
   ∧ contentOutput! = ran nodeDataContents
+  ∧ nodeId? = nodeId
   )
   ∨
   (
-  (ROLEBULKCID ∈ userAccessRigths⦇{user?}⦈ ∨ ROLEBULK ∈ userAccessRigths⦇{user?}⦈)
+  (ROLEBULK ∈ userAccessRigths⦇{user?}⦈ ∨ ROLEBULKCID ∈ userAccessRigths⦇{user?}⦈) 
+  ∧ cidBulkAccess′ = cidBulkAccess
   ∧ ran nodeDataCategories ∩ CIDCATEGORIES = ∅
-  ∧cidBulkAccess′ = cidBulkAccess
   ∧ contentOutput! = ran nodeDataContents
+  ∧ nodeId? = nodeId
   )
+└
+┌ AssignDataOwner
+  ΔDOMAIN
+  metadata?: METADATA
+  dataOwnerInput?: ENTITY
+|
+  dataOwner′ = dataOwner ⊕ {metadata? ↦ dataOwnerInput?}
+  roles′ = roles  
+  userAccessRigths′ = userAccessRigths 
+└
+┌ ClassifyDataCategory
+  ΔDOMAIN
+  metadata?: METADATA
+  dataCategory?: DATACATEGORY
+|
+  dataClassification′ = dataClassification ⊕ {metadata? ↦ dataCategory?}
+  roles′ = roles
+  userAccessRigths′ = userAccessRigths
+└
+─
+  ImplementDataClassification == AssignDataOwner ∧ ClassifyDataCategory 
+└
+┌ RecycleData
+  ΔDOMAIN
+  metadata?: METADATA
+|
+  metadata? ∈ dataOwnerMetadata
+  metadata? ∈ classificationMetadata
+  dataClassification′ = {metadata?} ⩤ dataClassification
+  dataOwner′ = {metadata?} ⩤ dataOwner
+  roles′ = roles
+  teams′ = teams
+  userAccessRigths′ = userAccessRigths
 └
