@@ -7,23 +7,422 @@ CID data stored on a node outside Switzerland.
 - customer name classified as client identifying data (CID) (S. ImplementDataClassification operation).
 - vip customer flag classified as non-CID (S. ImplementDataClassification operation).
 - anonymized CID data for customer name stored on a node outside Switzerland (S: XXXXX stored in nodeDataContents variable in AddNodeData operation);
-- USER1 is given access rights for customer name and vip customer flag data (AddRole and AddUserAccessRights operations);
-- USER1 in Switzerland and with access rights successfully accesses non-CID and anonymized CID data (S. contentOutput! variable in AccessNode operation);
-- USER1 outside Switzerland (USA) and with access rights successfully accesses non-CID and anonymized CID data (S. the contentOutput! variable in AccessNode operation);
-- USER2 without access rights can not access data (no solution provided by jaza in AccessNode operation).
+- Role ROLEGUICIDUSER given access to CUSTOMERNAME data (S. AddRole operation);
+- Role ROLEGUIUSER given access to ISVIPCUSTOMER data (S. AddRole operation);
+- USER1 is added to team ENTITY2 and internal users (S. AddUser and AddInternalUser operations);
+- USER1 is given access rights ROLEGUICIDUSER/ROLEGUIUSER for customer name and vip customer flag data (S. AddUserAccessRights operation);
+- USER1 in Switzerland and with access rights successfully accesses anonymized CID data (S. contentOutput! variable in AccessNode operation);
+- USER1 outside Switzerland (USA) and with access rights successfully accesses anonymized CID data (S. the contentOutput! variable in AccessNode operation);
+- USER2 without access rights can not access data (no solution provided by jaza for AccessNode operation).
 
 JAZA> reset
 Specification is now empty.
 JAZA> load CIDFINMA_spec_Z.zed
 Loading 'CIDFINMA_spec_Z.zed' ...
-Added 24 definitions.
+JAZA> load C:\jaza\test32
+Loading 'C:\jaza\test32' ...
+Added 28 definitions.
+JAZA> do InitDomain
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\}, classificationMetadata'==\{\},
+       dataClassification'==\{\}, dataOwner'==\{\},
+       dataOwnerMetadata'==\{\}, externalUsers'==\{\},
+       internalUsers'==\{\}, nodeContentsMetadata'==\{\},
+       nodeCountry'==GERMANY, nodeDataCategories'==\{\},
+       nodeDataContents'==\{\}, nodeId'==NODE1, nodeMetadata'==\{\},
+       roles'==\{\}, rolesRoles'==\{\}, teams'==\{\}, teamsTeams'==\{\},
+       userAccessRigths'==\{\} \rblot
+JAZA> ; ImplementDataClassification
+    Input metadata? = CUSTOMERNAME
+    Input dataOwnerInput? = ENTITY1
+    Input dataCategory? = DIRECT
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME\}, externalUsers'==\{\},
+       internalUsers'==\{\}, nodeContentsMetadata'==\{\},
+       nodeCountry'==GERMANY, nodeDataCategories'==\{\},
+       nodeDataContents'==\{\}, nodeId'==NODE1, nodeMetadata'==\{\},
+       roles'==\{\}, rolesRoles'==\{\}, teams'==\{\}, teamsTeams'==\{\},
+       userAccessRigths'==\{\} \rblot
+JAZA> ; ImplementDataClassification
+    Input metadata? = ISVIPCUSTOMER
+    Input dataOwnerInput? = ENTITY1
+    Input dataCategory? = NONCID
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
+       nodeContentsMetadata'==\{\}, nodeCountry'==GERMANY,
+       nodeDataCategories'==\{\}, nodeDataContents'==\{\}, nodeId'==NODE1,
+       nodeMetadata'==\{\}, roles'==\{\}, rolesRoles'==\{\}, teams'==\{\},
+       teamsTeams'==\{\}, userAccessRigths'==\{\} \rblot
+JAZA> ; AddNodeData
+    Input nodeIdInput? = NODE1
+    Input nodeCountryInput? = USA
+    Input nodeMetadataInput? = CUSTOMERNAME
+    Input nodeDataContentInput? = MUSTERMANN
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
+       nodeContentsMetadata'==\{CUSTOMERNAME\}, nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX)\}, nodeId'==NODE1,
+       nodeMetadata'==\{CUSTOMERNAME\}, roles'==\{\}, rolesRoles'==\{\},
+       teams'==\{\}, teamsTeams'==\{\}, userAccessRigths'==\{\} \rblot
+JAZA> ; AddNodeData
+    Input nodeIdInput? = NODE1
+    Input nodeCountryInput? = USA
+    Input nodeMetadataInput? = ISVIPCUSTOMER
+    Input nodeDataContentInput? = YES
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{\}, rolesRoles'==\{\}, teams'==\{\}, teamsTeams'==\{\},
+       userAccessRigths'==\{\} \rblot
+JAZA> ; AddRole
+    Input role? = ROLEGUICIDUSER
+    Input metadata? = CUSTOMERNAME
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUICIDUSER, CUSTOMERNAME)\},
+       rolesRoles'==\{ROLEGUICIDUSER\}, teams'==\{\}, teamsTeams'==\{\},
+       userAccessRigths'==\{\} \rblot
+JAZA> ; AddRole
+    Input role? = ROLEGUIUSER
+    Input metadata? = ISVIPCUSTOMER
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUICIDUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUICIDUSER, ROLEGUIUSER\}, teams'==\{\},
+       teamsTeams'==\{\}, userAccessRigths'==\{\} \rblot
+JAZA> ; AddUser
+    Input user? = USER1
+    Input entity? = ENTITY22
+Specification Error: unknown name: ENTITY22
+
+JAZA> ; AddUser
+    Input user? = USER1
+    Input entity? = ENTITY2
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUICIDUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUICIDUSER, ROLEGUIUSER\},
+       teams'==\{(ENTITY2, USER1)\}, teamsTeams'==\{ENTITY2\},
+       userAccessRigths'==\{\} \rblot
+JAZA> ; AddInternalUser
+    Input user? = USER1
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{USER1\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUICIDUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUICIDUSER, ROLEGUIUSER\},
+       teams'==\{(ENTITY2, USER1)\}, teamsTeams'==\{ENTITY2\},
+       userAccessRigths'==\{\} \rblot
+JAZA>
+JAZA>
+JAZA>
+JAZA> ; AddUserAccessRight
+    Input user? = USER1
+    Input role? = ROLEGUICIDUSER
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{USER1\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUICIDUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUICIDUSER, ROLEGUIUSER\},
+       teams'==\{(ENTITY2, USER1)\}, teamsTeams'==\{ENTITY2\},
+       userAccessRigths'==\{(USER1, ROLEGUICIDUSER)\} \rblot
+JAZA>
+JAZA>
+JAZA>
+JAZA> ; AccessNode
+    Input user? = USER1
+    Input userCountry? = SWITZERLAND
+    Input nodeId? = NODE1
+    Input accessNodeMetadata? = CUSTOMERNAME
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       contentOutput!==\{XXXXX\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{USER1\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUICIDUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUICIDUSER, ROLEGUIUSER\},
+       teams'==\{(ENTITY2, USER1)\}, teamsTeams'==\{ENTITY2\},
+       userAccessRigths'==\{(USER1, ROLEGUICIDUSER)\} \rblot
+JAZA> ; AddUserAccessRight
+    Input user? = USER1
+    Input role? = ROLEGUIUSER
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{USER1\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUICIDUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUICIDUSER, ROLEGUIUSER\},
+       teams'==\{(ENTITY2, USER1)\}, teamsTeams'==\{ENTITY2\},
+       userAccessRigths'==\{(USER1, ROLEGUICIDUSER),
+                            (USER1, ROLEGUIUSER)\} \rblot
+JAZA>
+JAZA>
+JAZA>
+JAZA> ; AccessNode
+    Input user? = USER1
+    Input userCountry? = SWITZERLAND
+    Input nodeId? = NODE1
+    Input accessNodeMetadata? = ISVIPCUSTOMER
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       contentOutput!==\{YES\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{USER1\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUICIDUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUICIDUSER, ROLEGUIUSER\},
+       teams'==\{(ENTITY2, USER1)\}, teamsTeams'==\{ENTITY2\},
+       userAccessRigths'==\{(USER1, ROLEGUICIDUSER),
+                            (USER1, ROLEGUIUSER)\} \rblot
+JAZA>
+JAZA>
+JAZA>
+JAZA> ; AccessNode
+    Input user? = USER1
+    Input userCountry? = USA
+    Input nodeId? = NODE1
+    Input accessNodeMetadata? = CUSTOMERNAME
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       contentOutput!==\{XXXXX\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{USER1\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUICIDUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUICIDUSER, ROLEGUIUSER\},
+       teams'==\{(ENTITY2, USER1)\}, teamsTeams'==\{ENTITY2\},
+       userAccessRigths'==\{(USER1, ROLEGUICIDUSER),
+                            (USER1, ROLEGUIUSER)\} \rblot
+JAZA> ; AccessNode
+    Input user? = USER1
+    Input userCountry? = USA
+    Input nodeId? = NODE1
+    Input accessNodeMetadata? = ISVIPCUSTOMER
+\lblot cidBulkAccess'==\{\}, cidBulkAccessUsers'==\{\},
+       cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       contentOutput!==\{YES\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{USER1\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUICIDUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUICIDUSER, ROLEGUIUSER\},
+       teams'==\{(ENTITY2, USER1)\}, teamsTeams'==\{ENTITY2\},
+       userAccessRigths'==\{(USER1, ROLEGUICIDUSER),
+                            (USER1, ROLEGUIUSER)\} \rblot
+JAZA>
+JAZA>
+JAZA>
+JAZA> ; AccessNode
+    Input user? = USER2
+    Input userCountry? = SWITZERLAND
+    Input nodeId? = NODE1
+    Input accessNodeMetadata? = CUSTOMERNAME
+No solutions
+JAZA>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Added 28 definitions.
 JAZA> do InitDomain
 \lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
        classificationMetadata'==\{\}, dataClassification'==\{\},
-       dataOwner'==\{\}, dataOwnerMetadata'==\{\},
-       nodeContentsMetadata'==\{\}, nodeCountry'==GERMANY,
-       nodeDataCategories'==\{\}, nodeDataContents'==\{\}, nodeId'==NODE1,
-       nodeMetadata'==\{\}, roles'==\{\}, rolesRoles'==\{\},
+       dataOwner'==\{\}, dataOwnerMetadata'==\{\}, externalUsers'==\{\},
+       internalUsers'==\{\}, nodeContentsMetadata'==\{\},
+       nodeCountry'==GERMANY, nodeDataCategories'==\{\},
+       nodeDataContents'==\{\}, nodeId'==NODE1, nodeMetadata'==\{\},
+       roles'==\{\}, rolesRoles'==\{\}, teams'==\{\}, teamsTeams'==\{\},
        userAccessRigths'==\{\} \rblot
 JAZA> ; ImplementDataClassification
     Input metadata? = CUSTOMERNAME
@@ -33,10 +432,12 @@ JAZA> ; ImplementDataClassification
        classificationMetadata'==\{CUSTOMERNAME\},
        dataClassification'==\{(CUSTOMERNAME, DIRECT)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1)\},
-       dataOwnerMetadata'==\{CUSTOMERNAME\}, nodeContentsMetadata'==\{\},
+       dataOwnerMetadata'==\{CUSTOMERNAME\}, externalUsers'==\{\},
+       internalUsers'==\{\}, nodeContentsMetadata'==\{\},
        nodeCountry'==GERMANY, nodeDataCategories'==\{\},
        nodeDataContents'==\{\}, nodeId'==NODE1, nodeMetadata'==\{\},
-       roles'==\{\}, rolesRoles'==\{\}, userAccessRigths'==\{\} \rblot
+       roles'==\{\}, rolesRoles'==\{\}, teams'==\{\}, teamsTeams'==\{\},
+       userAccessRigths'==\{\} \rblot
 JAZA> ; ImplementDataClassification
     Input metadata? = ISVIPCUSTOMER
     Input dataOwnerInput? = ENTITY1
@@ -47,10 +448,11 @@ JAZA> ; ImplementDataClassification
                               (ISVIPCUSTOMER, NONCID)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
        dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
        nodeContentsMetadata'==\{\}, nodeCountry'==GERMANY,
        nodeDataCategories'==\{\}, nodeDataContents'==\{\}, nodeId'==NODE1,
-       nodeMetadata'==\{\}, roles'==\{\}, rolesRoles'==\{\},
-       userAccessRigths'==\{\} \rblot
+       nodeMetadata'==\{\}, roles'==\{\}, rolesRoles'==\{\}, teams'==\{\},
+       teamsTeams'==\{\}, userAccessRigths'==\{\} \rblot
 JAZA> ; AddNodeData
     Input nodeIdInput? = NODE1
     Input nodeCountryInput? = USA
@@ -62,11 +464,12 @@ JAZA> ; AddNodeData
                               (ISVIPCUSTOMER, NONCID)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
        dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
        nodeContentsMetadata'==\{CUSTOMERNAME\}, nodeCountry'==USA,
        nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED)\},
        nodeDataContents'==\{(CUSTOMERNAME, XXXXX)\}, nodeId'==NODE1,
        nodeMetadata'==\{CUSTOMERNAME\}, roles'==\{\}, rolesRoles'==\{\},
-       userAccessRigths'==\{\} \rblot
+       teams'==\{\}, teamsTeams'==\{\}, userAccessRigths'==\{\} \rblot
 JAZA> ; AddNodeData
     Input nodeIdInput? = NODE1
     Input nodeCountryInput? = USA
@@ -78,13 +481,15 @@ JAZA> ; AddNodeData
                               (ISVIPCUSTOMER, NONCID)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
        dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
        nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        nodeCountry'==USA,
        nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
                               (ISVIPCUSTOMER, NONCID)\},
        nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
        nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
-       roles'==\{\}, rolesRoles'==\{\}, userAccessRigths'==\{\} \rblot
+       roles'==\{\}, rolesRoles'==\{\}, teams'==\{\}, teamsTeams'==\{\},
+       userAccessRigths'==\{\} \rblot
 JAZA> ; AddRole
     Input role? = ROLEGUIUSER
     Input metadata? = CUSTOMERNAME
@@ -94,6 +499,7 @@ JAZA> ; AddRole
                               (ISVIPCUSTOMER, NONCID)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
        dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
        nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        nodeCountry'==USA,
        nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
@@ -101,7 +507,8 @@ JAZA> ; AddRole
        nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
        nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        roles'==\{(ROLEGUIUSER, CUSTOMERNAME)\},
-       rolesRoles'==\{ROLEGUIUSER\}, userAccessRigths'==\{\} \rblot
+       rolesRoles'==\{ROLEGUIUSER\}, teams'==\{\}, teamsTeams'==\{\},
+       userAccessRigths'==\{\} \rblot
 JAZA> ; AddRole
     Input role? = ROLEGUIUSER
     Input metadata? = ISVIPCUSTOMER
@@ -111,6 +518,7 @@ JAZA> ; AddRole
                               (ISVIPCUSTOMER, NONCID)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
        dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
        nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        nodeCountry'==USA,
        nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
@@ -119,8 +527,48 @@ JAZA> ; AddRole
        nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        roles'==\{(ROLEGUIUSER, CUSTOMERNAME),
                  (ROLEGUIUSER, ISVIPCUSTOMER)\},
-       rolesRoles'==\{ROLEGUIUSER\}, userAccessRigths'==\{\} \rblot
-JAZA> ; AddUserAccessRights
+       rolesRoles'==\{ROLEGUIUSER\}, teams'==\{\}, teamsTeams'==\{\},
+       userAccessRigths'==\{\} \rblot
+JAZA> ; AddUser
+    Input user? = USER1
+    Input entity? = ENTITY2
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{\}, internalUsers'==\{\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUIUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUIUSER\}, teams'==\{(ENTITY2, USER1)\},
+       teamsTeams'==\{ENTITY2\}, userAccessRigths'==\{\} \rblot
+JAZA> ; AddExternalUser
+    Input user? = USER1
+\lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
+       classificationMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       dataClassification'==\{(CUSTOMERNAME, DIRECT),
+                              (ISVIPCUSTOMER, NONCID)\},
+       dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
+       dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{USER1\}, internalUsers'==\{\},
+       nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       nodeCountry'==USA,
+       nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
+                              (ISVIPCUSTOMER, NONCID)\},
+       nodeDataContents'==\{(CUSTOMERNAME, XXXXX), (ISVIPCUSTOMER, YES)\},
+       nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       roles'==\{(ROLEGUIUSER, CUSTOMERNAME),
+                 (ROLEGUIUSER, ISVIPCUSTOMER)\},
+       rolesRoles'==\{ROLEGUIUSER\}, teams'==\{(ENTITY2, USER1)\},
+       teamsTeams'==\{ENTITY2\}, userAccessRigths'==\{\} \rblot
+JAZA> ; AddUserAccessRight
     Input user? = USER1
     Input role? = ROLEGUIUSER
 \lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
@@ -129,6 +577,7 @@ JAZA> ; AddUserAccessRights
                               (ISVIPCUSTOMER, NONCID)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
        dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{USER1\}, internalUsers'==\{\},
        nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        nodeCountry'==USA,
        nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
@@ -137,12 +586,11 @@ JAZA> ; AddUserAccessRights
        nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        roles'==\{(ROLEGUIUSER, CUSTOMERNAME),
                  (ROLEGUIUSER, ISVIPCUSTOMER)\},
-       rolesRoles'==\{ROLEGUIUSER\},
+       rolesRoles'==\{ROLEGUIUSER\}, teams'==\{(ENTITY2, USER1)\},
+       teamsTeams'==\{ENTITY2\},
        userAccessRigths'==\{(USER1, ROLEGUIUSER)\} \rblot
-JAZA>
 JAZA> ; AccessNode
     Input user? = USER1
-    Input nodeId? = NODE1
     Input userCountry? = SWITZERLAND
     Input accessNodeMetadata? = CUSTOMERNAME
 \lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
@@ -152,6 +600,7 @@ JAZA> ; AccessNode
                               (ISVIPCUSTOMER, NONCID)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
        dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{USER1\}, internalUsers'==\{\},
        nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        nodeCountry'==USA,
        nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
@@ -160,11 +609,11 @@ JAZA> ; AccessNode
        nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        roles'==\{(ROLEGUIUSER, CUSTOMERNAME),
                  (ROLEGUIUSER, ISVIPCUSTOMER)\},
-       rolesRoles'==\{ROLEGUIUSER\},
+       rolesRoles'==\{ROLEGUIUSER\}, teams'==\{(ENTITY2, USER1)\},
+       teamsTeams'==\{ENTITY2\},
        userAccessRigths'==\{(USER1, ROLEGUIUSER)\} \rblot
 JAZA> ; AccessNode
     Input user? = USER1
-    Input nodeId? = NODE1
     Input userCountry? = SWITZERLAND
     Input accessNodeMetadata? = ISVIPCUSTOMER
 \lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
@@ -174,6 +623,7 @@ JAZA> ; AccessNode
                               (ISVIPCUSTOMER, NONCID)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
        dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{USER1\}, internalUsers'==\{\},
        nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        nodeCountry'==USA,
        nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
@@ -182,12 +632,11 @@ JAZA> ; AccessNode
        nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        roles'==\{(ROLEGUIUSER, CUSTOMERNAME),
                  (ROLEGUIUSER, ISVIPCUSTOMER)\},
-       rolesRoles'==\{ROLEGUIUSER\},
+       rolesRoles'==\{ROLEGUIUSER\}, teams'==\{(ENTITY2, USER1)\},
+       teamsTeams'==\{ENTITY2\},
        userAccessRigths'==\{(USER1, ROLEGUIUSER)\} \rblot
-JAZA>
 JAZA> ; AccessNode
     Input user? = USER1
-    Input nodeId? = NODE1
     Input userCountry? = USA
     Input accessNodeMetadata? = CUSTOMERNAME
 \lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
@@ -197,6 +646,7 @@ JAZA> ; AccessNode
                               (ISVIPCUSTOMER, NONCID)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
        dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{USER1\}, internalUsers'==\{\},
        nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        nodeCountry'==USA,
        nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
@@ -205,11 +655,11 @@ JAZA> ; AccessNode
        nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        roles'==\{(ROLEGUIUSER, CUSTOMERNAME),
                  (ROLEGUIUSER, ISVIPCUSTOMER)\},
-       rolesRoles'==\{ROLEGUIUSER\},
+       rolesRoles'==\{ROLEGUIUSER\}, teams'==\{(ENTITY2, USER1)\},
+       teamsTeams'==\{ENTITY2\},
        userAccessRigths'==\{(USER1, ROLEGUIUSER)\} \rblot
 JAZA> ; AccessNode
     Input user? = USER1
-    Input nodeId? = NODE1
     Input userCountry? = USA
     Input accessNodeMetadata? = ISVIPCUSTOMER
 \lblot cidBulkAccess'==\{\}, cidStoringNodesIds'==\{\},
@@ -219,6 +669,7 @@ JAZA> ; AccessNode
                               (ISVIPCUSTOMER, NONCID)\},
        dataOwner'==\{(CUSTOMERNAME, ENTITY1), (ISVIPCUSTOMER, ENTITY1)\},
        dataOwnerMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
+       externalUsers'==\{USER1\}, internalUsers'==\{\},
        nodeContentsMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        nodeCountry'==USA,
        nodeDataCategories'==\{(CUSTOMERNAME, PROTECTED),
@@ -227,18 +678,12 @@ JAZA> ; AccessNode
        nodeId'==NODE1, nodeMetadata'==\{CUSTOMERNAME, ISVIPCUSTOMER\},
        roles'==\{(ROLEGUIUSER, CUSTOMERNAME),
                  (ROLEGUIUSER, ISVIPCUSTOMER)\},
-       rolesRoles'==\{ROLEGUIUSER\},
+       rolesRoles'==\{ROLEGUIUSER\}, teams'==\{(ENTITY2, USER1)\},
+       teamsTeams'==\{ENTITY2\},
        userAccessRigths'==\{(USER1, ROLEGUIUSER)\} \rblot
-JAZA> ; AccessNode
-    Input user? = USER1
-    Input nodeId? =
-    Input userCountry? =
-    Input accessNodeMetadata? =
-Specification Error: no input value provided
 JAZA> ; AccessNode
     Input user? = USER2
-    Input nodeId? = NODE1
-    Input userCountry? = USA
+    Input userCountry? = SWITZERLAND
     Input accessNodeMetadata? = CUSTOMERNAME
 No solutions
 JAZA>
