@@ -1,5 +1,42 @@
-Spezifikation für FINMA-Rundschreiben (CID) in Z
+Z-Spezifikation für FINMA-Rundschreiben (CIDOperationelle Risiken - Banken, Schweiz)
 Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
+Sprache: Z
+
+Rundschreiben, Anhang 3, Umgang mit elektronischen Kundendaten (weiterhin als FINMA bezeichnet): 
+https://www.finma.ch/de/~/media/finma/dokumente/rundschreiben-archiv/finma-rs200821---30-06-2017.pdf
+
+Anforderungen des Rundscreibens:
+- Klassifikation der Kundendaten, oder CID (FINMA 10*)
+	DATENKATEGORIE
+	CIDDATENKATEGORIEN
+	METADATEN
+- Für CID verantwortliche Einheiten (FINMA 13*)
+	EINHEIT
+	BANK
+- Die Bank muss wissen, wo CID gespeichert wird (FINMA 15*)
+	CIDSYSTEMEINVENTAR
+- Länder: erhöhte Risiken der CID-Speicheerung ausserhalb der Schweiz (FINMA 20*)
+	LAND
+- Systeme für Speicherung und Zugriff ausserhalb der Schweiz haben ihre CIDs gesschützt 
+   (anonymiziert, pseudoanonymisiert, verschlüsselt) (FINMA 20*)
+   INHALT
+   DatenSpeichern
+- Ein rollen- und funktionsspezifisches Autorosoerungssystem regelt CID-Zugriffsberechtigungen (FINMA 22*)
+	ROLLE
+	CIDROLLEN
+	BENUTZER
+	BANK
+- Liste der Benutzer mit Zugriff auf Massen-CID (FINMA 34*)
+	MassenCIDZugriffsberechtigungListe
+- Datenbearbeitung mit Massen-CIDs: Log-Dateien (FINMA 40*)
+	CIDMASSENZUGRIFFSLOG
+- Interne Mitarbeitende, verantwortlich für ausgelagerte CID-Aktivität (FINMA 50*)
+	BANK
+	BENUTZER
+	BenutzerHinzufuegen
+	InternenBenutzerHinzufuegen
+	ExternenBenutzerHinzufuegen
+	
 \begin{zsection}	 \SECTION Specification \parents~standard\_toolkit , zeves\_toolkit
 \end{zsection}
 
@@ -24,7 +61,10 @@ Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
 \begin{zed}BENUTZER ::= BENUTZER1 | BENUTZER2 | BENUTZER3
 \end{zed}
 
-\begin{zed}ROLLE ::= ROLLEGUIBENUTZER | ROLLEMASSENZUGRIFFCID | ROLLEMASSENZUGRIFFNICHTCID | ROLLE1
+\begin{zed}ROLLE ::= ROLLEGUIBENUTZERCID | ROLLEGUIBENUTZER | ROLLEMASSENZUGRIFFCID | ROLLEMASSENZUGRIFFNICHTCID | ROLLE1
+\end{zed}
+
+\begin{zed}CIDROLLEN == \{ ROLLEGUIBENUTZERCID , ROLLEMASSENZUGRIFFCID \}
 \end{zed}
 
 \begin{zed}SYSTEMID ::= SYSTEM1 | SYSTEM2 | SYSTEM3
@@ -61,14 +101,23 @@ Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
  Datenklassifizierung : METADATEN \pfun DATENKATEGORIE \\
  VerantwortlicheEinheiten : METADATEN \pfun EINHEIT \\
  Rollen : ROLLE \rel METADATEN \\
+ Teams : EINHEIT \rel BENUTZER \\
+ InterneBenutzer : \power BENUTZER \\
+ ExterneBenutzer : \power BENUTZER \\
  BenutzerZugriffsrechte : BENUTZER \rel ROLLE \\
  KlassifizierungMetadaten : \power METADATEN \\
  VerantwortlicheMetadaten : \power METADATEN \\
- RollenRollen : \power ROLLE 
+ RollenRollen : \power ROLLE \\
+ TeamsTeams : \power EINHEIT 
 \where
+ \forall u : BENUTZER @ \lnot ( u \in InterneBenutzer \land u \in ExterneBenutzer ) \\
+ \forall u : \dom BenutzerZugriffsrechte @ u \in \ran Teams \\
+ \forall u : \dom BenutzerZugriffsrechte @ u \in InterneBenutzer \lor u \in ExterneBenutzer \\
+ \forall u : ExterneBenutzer @ \lnot ( BenutzerZugriffsrechte \limg \{ u \} \rimg \cap CIDROLLEN \neq \emptyset \land Teams \limg \dom ( Teams \rres \{ u \} ) \rimg \cap InterneBenutzer =~\emptyset ) \\
  KlassifizierungMetadaten = \dom Datenklassifizierung \\
  VerantwortlicheMetadaten = \dom VerantwortlicheEinheiten \\
  RollenRollen = \dom Rollen \\
+ TeamsTeams = \dom Teams \\
  \dom Datenklassifizierung \subseteq \dom VerantwortlicheEinheiten
 \end{schema}
 
@@ -88,6 +137,9 @@ Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
 \where
  VerantwortlicheMetadaten' =~\emptyset \\
  KlassifizierungMetadaten' =~\emptyset \\
+ Teams' =~\emptyset \\
+ InterneBenutzer' =~\emptyset \\
+ ExterneBenutzer' =~\emptyset \\
  BenutzerZugriffsrechte' =~\emptyset \\
  SystemMetadaten' =~\emptyset \\
  CIDSpeichersystemeIds' =~\emptyset \\
@@ -104,7 +156,10 @@ Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
 \where
  VerantwortlicheEinheiten' = VerantwortlicheEinheiten \oplus \{ MetadatenEingabe? \mapsto EinheitEingabe? \} \\
  Rollen' = Rollen \\
- BenutzerZugriffsrechte' = BenutzerZugriffsrechte
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte \\
+ Teams' = Teams \\
+ InterneBenutzer' = InterneBenutzer \\
+ ExterneBenutzer' = ExterneBenutzer
 \end{schema}
 
 
@@ -116,7 +171,10 @@ Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
 \where
  Datenklassifizierung' = Datenklassifizierung \oplus \{ MetadatenEingabe? \mapsto DatenkategorieEingabe? \} \\
  Rollen' = Rollen \\
- BenutzerZugriffsrechte' = BenutzerZugriffsrechte
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte \\
+ Teams' = Teams \\
+ InterneBenutzer' = InterneBenutzer \\
+ ExterneBenutzer' = ExterneBenutzer
 \end{schema}
 
 
@@ -135,7 +193,10 @@ Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
  Datenklassifizierung' = \{ MetadatenEingabe? \} \ndres Datenklassifizierung \\
  VerantwortlicheEinheiten' = \{ MetadatenEingabe? \} \ndres VerantwortlicheEinheiten \\
  Rollen' = Rollen \\
- BenutzerZugriffsrechte' = BenutzerZugriffsrechte
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte \\
+ Teams' = Teams \\
+ InterneBenutzer' = InterneBenutzer \\
+ ExterneBenutzer' = ExterneBenutzer
 \end{schema}
 
 
@@ -162,9 +223,55 @@ Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
  Rollen' = Rollen \cup \{ ( RolleEingabe? , MetadatenEingabe? ) \} \\
  Datenklassifizierung' = Datenklassifizierung \\
  VerantwortlicheEinheiten' = VerantwortlicheEinheiten \\
- BenutzerZugriffsrechte' = BenutzerZugriffsrechte
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte \\
+ Teams' = Teams \\
+ InterneBenutzer' = InterneBenutzer \\
+ ExterneBenutzer' = ExterneBenutzer
 \end{schema}
 
+
+
+\begin{schema}{BenutzerHinzufuegen}
+ \Delta BANK \\
+ benutzer? : BENUTZER \\
+ einheit? : EINHEIT 
+\where
+ Teams' = Teams \cup \{ ( einheit? , benutzer? ) \} \\
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte \\
+ Rollen' = Rollen \\
+ InterneBenutzer' = InterneBenutzer \\
+ ExterneBenutzer' = ExterneBenutzer \\
+ Datenklassifizierung' = Datenklassifizierung \\
+ VerantwortlicheEinheiten' = VerantwortlicheEinheiten
+\end{schema}
+
+
+\begin{schema}{InternenBenutzerHinzufuegen}
+ \Delta BANK \\
+ benutzer? : BENUTZER 
+\where
+ InterneBenutzer' = InterneBenutzer \cup \{ benutzer? \} \\
+ ExterneBenutzer' = ExterneBenutzer \\
+ Teams' = Teams \\
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte \\
+ Rollen' = Rollen \\
+ Datenklassifizierung' = Datenklassifizierung \\
+ VerantwortlicheEinheiten' = VerantwortlicheEinheiten
+\end{schema}
+
+
+\begin{schema}{ExternenBenutzerHinzufuegen}
+ \Delta BANK \\
+ benutzer? : BENUTZER 
+\where
+ ExterneBenutzer' = ExterneBenutzer \cup \{ benutzer? \} \\
+ InterneBenutzer' = InterneBenutzer \\
+ Teams' = Teams \\
+ BenutzerZugriffsrechte' = BenutzerZugriffsrechte \\
+ Rollen' = Rollen \\
+ Datenklassifizierung' = Datenklassifizierung \\
+ VerantwortlicheEinheiten' = VerantwortlicheEinheiten
+\end{schema}
 
 
 \begin{schema}{BenutzerZugriffsrechtHinzufuegen}
@@ -175,9 +282,11 @@ Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
  BenutzerZugriffsrechte' = BenutzerZugriffsrechte \cup \{ ( BenutzerEingabe? , RolleEingabe? ) \} \\
  Rollen' = Rollen \\
  Datenklassifizierung' = Datenklassifizierung \\
- VerantwortlicheEinheiten' = VerantwortlicheEinheiten
+ VerantwortlicheEinheiten' = VerantwortlicheEinheiten \\
+ Teams' = Teams \\
+ InterneBenutzer' = InterneBenutzer \\
+ ExterneBenutzer' = ExterneBenutzer
 \end{schema}
-
 
 
 \begin{schema}{BenutzerZugriffsrechtEntfernen}
@@ -188,7 +297,10 @@ Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
  BenutzerZugriffsrechte' = BenutzerZugriffsrechte \setminus \{ ( BenutzerEingabe? , RolleEingabe? ) \} \\
  Rollen' = Rollen \\
  Datenklassifizierung' = Datenklassifizierung \\
- VerantwortlicheEinheiten' = VerantwortlicheEinheiten
+ VerantwortlicheEinheiten' = VerantwortlicheEinheiten \\
+ Teams' = Teams \\
+ InterneBenutzer' = InterneBenutzer \\
+ ExterneBenutzer' = ExterneBenutzer
 \end{schema}
 
 
@@ -219,4 +331,12 @@ Entwickelt von Serge (Siarhei Vinahradau, vinahradau@yahoo.de)
  ( SystemIdEingabe? = SystemId \land ROLLEMASSENZUGRIFFCID \in BenutzerZugriffsrechte \limg \{ BenutzerEingabe? \} \rimg \land BenutzerLandEingabe? = SCHWEIZ \land \ran SystemDatenklassifizierung \cap CIDDATENKATEGORIEN \neq \emptyset \land CIDMassenzugriffslog' = CIDMassenzugriffslog \cup \{ ( BenutzerEingabe? , SystemIdEingabe? ) \} \land MasseninhaltAusgabe! = \ran SystemDateninhalte ) \lor ( SystemIdEingabe? = SystemId \land ( ROLLEMASSENZUGRIFFCID \in BenutzerZugriffsrechte \limg \{ BenutzerEingabe? \} \rimg \lor ROLLEMASSENZUGRIFFNICHTCID \in BenutzerZugriffsrechte \limg \{ BenutzerEingabe? \} \rimg ) \land \ran SystemDatenklassifizierung \cap CIDDATENKATEGORIEN =~\emptyset \land CIDMassenzugriffslog' = CIDMassenzugriffslog \land MasseninhaltAusgabe! = \ran SystemDateninhalte )
 \end{schema}
 
+
+\begin{schema}{MassenCIDZugriffsberechtigungListe}
+ \Xi BANK \\
+ \Xi SYSTEM \\
+ MassenCIDBenutzer! : \power BENUTZER 
+\where
+ MassenCIDBenutzer! = \dom ( BenutzerZugriffsrechte \rres \{ ROLLEMASSENZUGRIFFCID \} )
+\end{schema}
 
