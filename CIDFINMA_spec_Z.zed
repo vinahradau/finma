@@ -1,5 +1,41 @@
-CID FINMA Specification using the Z Notation
+Client Identifying Data (CID) Requirements Specification for banks in Switzerland 
+Language: Z Notation
 Developed By Serge (Siarhei Vinahradau, vinahradau@yahoo.de
+Specification, further referred to as FINMA:
+https://www.finma.ch/de/~/media/finma/dokumente/rundschreiben-archiv/finma-rs200821---30-06-2017.pdf
+
+Specification requirements:
+-CID data classification (FINMA 10*)
+	DATACATEGORY
+	CIDCATEGORIES
+	METADATA
+- CID data owner (FINMA 13*)
+	ENTITY
+	DOMAIN
+- all nodes with CID data stored should be recorded (FINMA 15*)
+	CIDSTORINGNODESAUDITLOG
+- CID protection risks are country specific (FINMA 20*)
+	COUNTRY
+- no node outside Switzerland should have unprotected CID data stored (FINMA 20*)
+	CONTENT
+	NODE
+	AddNodeData
+- CID data accessed by users from outside Switzerland has to be protected (FINMA 20*)
+	AccesNodeData
+- role and function based authorisation system in place (FINMA 22*)
+	ROLE
+	USER
+	DOMAIN
+- List of users with bulk CID access (FINMA 34*)
+	BulkCIDAccessUsersList
+- logs for bulk CID access (FINMA 40*)
+	CIDBULKLOG
+- an internal employee has to be responsible for the compliance of outsourced CID activities (FINMA 50*)
+	DOMAIN
+	USER
+	AddUser
+	AddInternalUser
+	AddExternalUser
 \begin{zsection}	 \SECTION Specification \parents~standard\_toolkit , zeves\_toolkit
 \end{zsection}
 
@@ -276,3 +312,13 @@ Developed By Serge (Siarhei Vinahradau, vinahradau@yahoo.de
  teams' = teams \\
  userAccessRigths' = userAccessRigths
 \end{schema}
+
+
+\begin{schema}{BulkCIDAccessUsersList}
+ \Xi DOMAIN \\
+ \Xi NODE \\
+ BulkCIDAccessUsersList! : \power USER 
+\where
+ BulkCIDAccessUsersList! = \dom ( userAccessRigths \rres \{ ROLEBULKCID \} )
+\end{schema}
+
