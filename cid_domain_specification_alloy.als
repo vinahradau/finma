@@ -80,7 +80,7 @@ all u : DOMAIN.externalUsers | u not in DOMAIN.internalUsers
 
 fact {
 // external users with CID access rights have to have internal user in their teams:
-// an internal employee has to responsible for the compliance of  outsourced CID activities (FINMA 50*)
+// an internal employee has to be responsible for the compliance of outsourced CID activities (FINMA 50*)
 no u : DOMAIN.externalUsers | 
 (some r : DOMAIN.userAccessRights[u] | isCIDRole[r]) and (DOMAIN.teams[(DOMAIN.teams).u] & DOMAIN.internalUsers = none)
 }
