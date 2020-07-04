@@ -90,8 +90,11 @@ Specification requirements:
 └
 ┌ CIDSTORINGNODESAUDITLOG
   cidStoringNodesIds: ℙ NODEID
+  NODE
 |
    #(cidStoringNodesIds) < 6
+   ∀ cidDataCategory : ran nodeDataCategories ⦁ 
+   cidDataCategory ∈ CIDCATEGORIES ⇒ nodeId ∈ cidStoringNodesIds
 └
 ┌ CIDBULKLOG
   cidBulkAccess: USER ↔ NODEID
