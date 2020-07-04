@@ -113,9 +113,11 @@ Specification requirements:
 
 
 \begin{schema}{CIDSTORINGNODESAUDITLOG}
- cidStoringNodesIds : \power NODEID 
+ cidStoringNodesIds : \power NODEID \\
+ NODE
 \where
- \# ( cidStoringNodesIds ) < 6
+ \# ( cidStoringNodesIds ) < 6\\
+ \forall cidDataCategory : \ran nodeDataCategories @ cidDataCategory \in CIDCATEGORIES \implies nodeId \in cidStoringNodesIds
 \end{schema}
 
 
